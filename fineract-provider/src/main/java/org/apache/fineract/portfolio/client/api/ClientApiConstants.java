@@ -42,6 +42,9 @@ public class ClientApiConstants {
     public static final String CLIENT_CHARGE_QUERY_PARAM_STATUS_VALUE_ACTIVE = "active";
     public static final String CLIENT_CHARGE_QUERY_PARAM_STATUS_VALUE_INACTIVE = "inactive";
     public static final String CLIENT_CHARGE_ASSOCIATIONS_TRANSACTIONS = "transactions";
+    public static final String StudyYear = "StudyYear";
+    public static final String Grade = "Grade";
+    
 
     // Client transaction action names
     public static final String CLIENT_TRANSACTION_ACTION_READ = "READTRANSACTION";
@@ -130,6 +133,8 @@ public class ClientApiConstants {
     public static final String incorpValidityTillParamName = "incorpValidityTillDate";
     public static final String constitutionIdParamName = "constitutionId";
     public static final String mainBusinessLineIdParamName = "mainBusinessLineId";
+    public static final String studyyearId = "studyyearId";
+    public static final String classoption ="classoption";
 
     // response parameters
     public static final String statusParamName = "status";

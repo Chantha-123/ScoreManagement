@@ -55,6 +55,17 @@ buildscript {
     }
 }
 
+buildscript {
+    configurations.classpath.resolutionStrategy.eachDependency { details ->
+        if (details.requested.group == 'com.burgstaller' && details.requested.name == 'okhttp-digest') {
+            details.useTarget group: 'io.github.rburgst', name: 'okhttp-digest', version: '3.1.1'
+        }
+    }
+}
+
+
+
+
 plugins {
     id "org.barfuin.gradle.taskinfo" version "1.4.0"
     id 'com.adarshr.test-logger' version '3.2.0'

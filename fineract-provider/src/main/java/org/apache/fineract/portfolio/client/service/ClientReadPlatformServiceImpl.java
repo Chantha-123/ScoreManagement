@@ -572,7 +572,7 @@ public class ClientReadPlatformServiceImpl implements ClientReadPlatformService 
                     "cvSubStatus.code_value as subStatusValue,cvSubStatus.code_description as subStatusDesc,c.office_id as officeId, o.name as officeName, ");
             builder.append("c.transfer_to_office_id as transferToOfficeId, transferToOffice.name as transferToOfficeName, ");
             builder.append("c.firstname as firstname, c.middlename as middlename, c.lastname as lastname, ");
-            builder.append("c.fullname as fullname, c.display_name as displayName, ");
+            builder.append("c.fullname as fullname, c.display_name as displayName, c.study_year  study_year, c.class_id class_id, ");
             builder.append("c.mobile_no as mobileNo, ");
             builder.append("c.is_staff as isStaff, ");
             builder.append("c.email_address as emailAddress, ");
@@ -654,7 +654,8 @@ public class ClientReadPlatformServiceImpl implements ClientReadPlatformService 
 
             final Long transferToOfficeId = JdbcSupport.getLong(rs, "transferToOfficeId");
             final String transferToOfficeName = rs.getString("transferToOfficeName");
-
+            final Long study_year = rs.getLong("study_year");
+            final Long class_id = rs.getLong("class_id");
             final Long id = JdbcSupport.getLong(rs, "id");
             final String firstname = rs.getString("firstname");
             final String middlename = rs.getString("middlename");
@@ -724,10 +725,13 @@ public class ClientReadPlatformServiceImpl implements ClientReadPlatformService 
                     submittedByLastname, activationDate, activatedByUsername, activatedByFirstname, activatedByLastname, closedOnDate,
                     closedByUsername, closedByFirstname, closedByLastname);
 
-            return ClientData.instance(accountNo, status, subStatus, officeId, officeName, transferToOfficeId, transferToOfficeName, id,
+             ClientData  clientData = ClientData.instance(accountNo, status, subStatus, officeId, officeName, transferToOfficeId, transferToOfficeName, id,
                     firstname, middlename, lastname, fullname, displayName, externalId, mobileNo, emailAddress, dateOfBirth, gender,
                     activationDate, imageId, staffId, staffName, timeline, savingsProductId, savingsProductName, savingsAccountId,
                     clienttype, classification, legalForm, clientNonPerson, isStaff);
+             clientData.setStudy_id(study_year);
+             clientData.setClass_id(class_id);
+             return clientData;
 
         }
     }

@@ -914,6 +914,8 @@
             <column defaultValueComputed="NULL" name="legal_form_enum" type="INT"/>
             <column defaultValueComputed="NULL" name="reopened_on_date" type="date"/>
             <column defaultValueComputed="NULL" name="reopened_by_userid" type="BIGINT"/>
+            <column defaultValueComputed="NULL" name="study_year" type="BIGINT"/>
+            <column defaultValueComputed="NULL" name="class_Id" type="BIGINT"/>
             <column name="email_address" type="VARCHAR(150)"/>
             <column defaultValueComputed="NULL" name="proposed_transfer_date" type="date"/>
         </createTable>

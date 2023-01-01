@@ -223,6 +223,16 @@ public class Client extends AbstractAuditableWithUTCDateTimeCustom {
 
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<ClientCollateralManagement> clientCollateralManagements = new HashSet<>();
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "study_year", nullable = true)
+    private CodeValue study_year;
+    
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "class_Id", nullable = true)
+    private CodeValue class_Id;
+    
 
     public static Client createNew(final AppUser currentUser, final Office clientOffice, final Group clientParentGroup, final Staff staff,
             final Long savingsProductId, final CodeValue gender, final CodeValue clientType, final CodeValue clientClassification,
@@ -1024,5 +1034,269 @@ public class Client extends AbstractAuditableWithUTCDateTimeCustom {
     public void updateProposedTransferDate(LocalDate proposedTransferDate) {
         this.proposedTransferDate = proposedTransferDate;
     }
+
+	public String getAccountNumber() {
+		return accountNumber;
+	}
+
+	public void setAccountNumber(String accountNumber) {
+		this.accountNumber = accountNumber;
+	}
+
+	public CodeValue getSubStatus() {
+		return subStatus;
+	}
+
+	public void setSubStatus(CodeValue subStatus) {
+		this.subStatus = subStatus;
+	}
+
+	public LocalDate getActivationDate() {
+		return activationDate;
+	}
+
+	public void setActivationDate(LocalDate activationDate) {
+		this.activationDate = activationDate;
+	}
+
+	public LocalDate getOfficeJoiningDate() {
+		return officeJoiningDate;
+	}
+
+	public void setOfficeJoiningDate(LocalDate officeJoiningDate) {
+		this.officeJoiningDate = officeJoiningDate;
+	}
+
+	public String getFullname() {
+		return fullname;
+	}
+
+	public void setFullname(String fullname) {
+		this.fullname = fullname;
+	}
+
+	public LocalDate getDateOfBirth() {
+		return dateOfBirth;
+	}
+
+	public void setDateOfBirth(LocalDate dateOfBirth) {
+		this.dateOfBirth = dateOfBirth;
+	}
+
+	public CodeValue getGender() {
+		return gender;
+	}
+
+	public void setGender(CodeValue gender) {
+		this.gender = gender;
+	}
+
+	public CodeValue getClosureReason() {
+		return closureReason;
+	}
+
+	public void setClosureReason(CodeValue closureReason) {
+		this.closureReason = closureReason;
+	}
+
+	public CodeValue getRejectionReason() {
+		return rejectionReason;
+	}
+
+	public void setRejectionReason(CodeValue rejectionReason) {
+		this.rejectionReason = rejectionReason;
+	}
+
+	public LocalDate getRejectionDate() {
+		return rejectionDate;
+	}
+
+	public void setRejectionDate(LocalDate rejectionDate) {
+		this.rejectionDate = rejectionDate;
+	}
+
+	public AppUser getRejectedBy() {
+		return rejectedBy;
+	}
+
+	public void setRejectedBy(AppUser rejectedBy) {
+		this.rejectedBy = rejectedBy;
+	}
+
+	public CodeValue getWithdrawalReason() {
+		return withdrawalReason;
+	}
+
+	public void setWithdrawalReason(CodeValue withdrawalReason) {
+		this.withdrawalReason = withdrawalReason;
+	}
+
+	public AppUser getWithdrawnBy() {
+		return withdrawnBy;
+	}
+
+	public void setWithdrawnBy(AppUser withdrawnBy) {
+		this.withdrawnBy = withdrawnBy;
+	}
+
+	public LocalDate getReactivateDate() {
+		return reactivateDate;
+	}
+
+	public void setReactivateDate(LocalDate reactivateDate) {
+		this.reactivateDate = reactivateDate;
+	}
+
+	public AppUser getReactivatedBy() {
+		return reactivatedBy;
+	}
+
+	public void setReactivatedBy(AppUser reactivatedBy) {
+		this.reactivatedBy = reactivatedBy;
+	}
+
+	public AppUser getClosedBy() {
+		return closedBy;
+	}
+
+	public void setClosedBy(AppUser closedBy) {
+		this.closedBy = closedBy;
+	}
+
+	public AppUser getActivatedBy() {
+		return activatedBy;
+	}
+
+	public void setActivatedBy(AppUser activatedBy) {
+		this.activatedBy = activatedBy;
+	}
+
+	public Long getSavingsProductId() {
+		return savingsProductId;
+	}
+
+	public void setSavingsProductId(Long savingsProductId) {
+		this.savingsProductId = savingsProductId;
+	}
+
+	public Long getSavingsAccountId() {
+		return savingsAccountId;
+	}
+
+	public void setSavingsAccountId(Long savingsAccountId) {
+		this.savingsAccountId = savingsAccountId;
+	}
+
+	public CodeValue getClientType() {
+		return clientType;
+	}
+
+	public void setClientType(CodeValue clientType) {
+		this.clientType = clientType;
+	}
+
+	public CodeValue getClientClassification() {
+		return clientClassification;
+	}
+
+	public void setClientClassification(CodeValue clientClassification) {
+		this.clientClassification = clientClassification;
+	}
+
+	public AppUser getReopenedBy() {
+		return reopenedBy;
+	}
+
+	public void setReopenedBy(AppUser reopenedBy) {
+		this.reopenedBy = reopenedBy;
+	}
+
+	public Set<ClientCollateralManagement> getClientCollateralManagements() {
+		return clientCollateralManagements;
+	}
+
+	public void setClientCollateralManagements(Set<ClientCollateralManagement> clientCollateralManagements) {
+		this.clientCollateralManagements = clientCollateralManagements;
+	}
+
+	public CodeValue getStudy_year() {
+		return study_year;
+	}
+
+	public void setStudy_year(CodeValue study_year) {
+		this.study_year = study_year;
+	}
+
+	public CodeValue getClass_Id() {
+		return class_Id;
+	}
+
+	public void setClass_Id(CodeValue class_Id) {
+		this.class_Id = class_Id;
+	}
+
+	public String getMobileNo() {
+		return mobileNo;
+	}
+
+	public String getEmailAddress() {
+		return emailAddress;
+	}
+
+	public void setOffice(Office office) {
+		this.office = office;
+	}
+
+	public void setTransferToOffice(Office transferToOffice) {
+		this.transferToOffice = transferToOffice;
+	}
+
+	public void setFirstname(String firstname) {
+		this.firstname = firstname;
+	}
+
+	public void setMiddlename(String middlename) {
+		this.middlename = middlename;
+	}
+
+	public void setLastname(String lastname) {
+		this.lastname = lastname;
+	}
+
+	public void setStaff(boolean isStaff) {
+		this.isStaff = isStaff;
+	}
+
+	public void setExternalId(String externalId) {
+		this.externalId = externalId;
+	}
+
+	public void setStaff(Staff staff) {
+		this.staff = staff;
+	}
+
+	public void setGroups(Set<Group> groups) {
+		this.groups = groups;
+	}
+
+	public void setClosureDate(LocalDate closureDate) {
+		this.closureDate = closureDate;
+	}
+
+	public void setWithdrawalDate(LocalDate withdrawalDate) {
+		this.withdrawalDate = withdrawalDate;
+	}
+
+	public void setSubmittedOnDate(LocalDate submittedOnDate) {
+		this.submittedOnDate = submittedOnDate;
+	}
+
+	public void setReopenedDate(LocalDate reopenedDate) {
+		this.reopenedDate = reopenedDate;
+	}
+
+	public void setProposedTransferDate(LocalDate proposedTransferDate) {
+		this.proposedTransferDate = proposedTransferDate;
+	}
 
 }
