@@ -49,7 +49,13 @@ import org.apache.fineract.portfolio.calendar.exception.CalendarDateException;
 import org.apache.fineract.portfolio.calendar.exception.CalendarParameterUpdateNotSupportedException;
 import org.apache.fineract.portfolio.calendar.service.CalendarUtils;
 import org.apache.fineract.useradministration.domain.AppUser;
+import org.apache.poi.openxml4j.util.Nullable;
 import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import org.joda.time.LocalTime;
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 @Entity
 @Table(name = "m_calendar")
@@ -92,10 +98,14 @@ public class Calendar extends AbstractAuditableCustom<AppUser, Long> {
 
     @Column(name = "second_reminder", nullable = true)
     private Integer secondReminder;
-
+    
+    @Column(name="meeting_time",nullable=true)
+    @Temporal(TemporalType.TIME)
+    private Date meetingtime;
+    
     @OneToMany(fetch = FetchType.EAGER)
     @JoinColumn(name = "calendar_id")
-    private final Set<CalendarHistory> calendarHistory = new HashSet<>();
+    private Set<CalendarHistory> calendarHistory = new HashSet<>();
 
     protected Calendar() {
 
@@ -103,7 +113,7 @@ public class Calendar extends AbstractAuditableCustom<AppUser, Long> {
 
     public Calendar(final String title, final String description, final String location, final LocalDate startDate,
             final LocalDate endDate, final Integer duration, final Integer typeId, final boolean repeating, final String recurrence,
-            final Integer remindById, final Integer firstReminder, final Integer secondReminder) {
+            final Integer remindById, final Integer firstReminder, final Integer secondReminder,final Date meetingtime) {
 
         final List<ApiParameterError> dataValidationErrors = new ArrayList<>();
         final DataValidatorBuilder baseDataValidator = new DataValidatorBuilder(dataValidationErrors).resource(CALENDAR_RESOURCE_NAME);
@@ -138,11 +148,17 @@ public class Calendar extends AbstractAuditableCustom<AppUser, Long> {
         this.remindById = remindById;
         this.firstReminder = firstReminder;
         this.secondReminder = secondReminder;
+        this.meetingtime=meetingtime;
     }
 
     public static Calendar createRepeatingCalendar(final String title, final LocalDate startDate, final Integer typeId,
             final CalendarFrequencyType frequencyType, final Integer interval, final Integer repeatsOnDay) {
+        final String recurrence = constructRecurrence(frequencyType, interval, repeatsOnDay);
+        return createRepeatingCalendar(title, startDate, typeId, recurrence);
+    }
 
+    public static Calendar createRepeatingCalendar(final String title, final LocalDate startDate, final Integer typeId,
+            final String recurrence) {
         final String description = null;
         final String location = null;
         final LocalDate endDate = null;
@@ -151,10 +167,9 @@ public class Calendar extends AbstractAuditableCustom<AppUser, Long> {
         final Integer remindById = null;
         final Integer firstReminder = null;
         final Integer secondReminder = null;
-        final String recurrence = constructRecurrence(frequencyType, interval, repeatsOnDay);
-
+        final Date meetingtime=null;
         return new Calendar(title, description, location, startDate, endDate, duration, typeId, repeating, recurrence, remindById,
-                firstReminder, secondReminder);
+                firstReminder, secondReminder,meetingtime);
     }
 
     public static Calendar fromJson(final JsonCommand command) {
@@ -162,6 +177,7 @@ public class Calendar extends AbstractAuditableCustom<AppUser, Long> {
         // final Long entityId = command.getSupportedEntityId();
         // final Integer entityTypeId =
         // CalendarEntityType.valueOf(command.getSupportedEntityType().toUpperCase()).getValue();
+        Date meetingtime=null;
         final String title = command.stringValueOfParameterNamed(CALENDAR_SUPPORTED_PARAMETERS.TITLE.getValue());
         final String description = command.stringValueOfParameterNamed(CALENDAR_SUPPORTED_PARAMETERS.DESCRIPTION.getValue());
         final String location = command.stringValueOfParameterNamed(CALENDAR_SUPPORTED_PARAMETERS.LOCATION.getValue());
@@ -175,10 +191,14 @@ public class Calendar extends AbstractAuditableCustom<AppUser, Long> {
                 .getValue());
         final Integer secondReminder = command.integerValueSansLocaleOfParameterNamed(CALENDAR_SUPPORTED_PARAMETERS.SECOND_REMINDER
                 .getValue());
+       final LocalDateTime time= command.localTimeValueOfParameterNamed(CALENDAR_SUPPORTED_PARAMETERS.MEETING_TIME.getValue());
+       if(time!=null){
+        meetingtime=time.toDate();
+       }
         final String recurrence = Calendar.constructRecurrence(command, null);
 
         return new Calendar(title, description, location, startDate, endDate, duration, typeId, repeating, recurrence, remindById,
-                firstReminder, secondReminder);
+                firstReminder, secondReminder,meetingtime);
     }
 
     public Map<String, Object> updateStartDateAndDerivedFeilds(final LocalDate newMeetingStartDate) {
@@ -233,7 +253,7 @@ public class Calendar extends AbstractAuditableCustom<AppUser, Long> {
 
     }
 
-    public Map<String, Object> update(final JsonCommand command, final Boolean areActiveEntitiesSynced ) {
+    public Map<String, Object> update(final JsonCommand command, final Boolean areActiveEntitiesSynced) {
 
         final Map<String, Object> actualChanges = new LinkedHashMap<>(9);
 
@@ -345,7 +365,7 @@ public class Calendar extends AbstractAuditableCustom<AppUser, Long> {
              * calendar then do not allow to change meeting frequency
              */
 
-            if ( areActiveEntitiesSynced && !CalendarUtils.isFrequencySame(this.recurrence, newRecurrence)) {
+            if (areActiveEntitiesSynced && !CalendarUtils.isFrequencySame(this.recurrence, newRecurrence)) {
                 final String defaultUserMessage = "Update of meeting frequency is not supported";
                 throw new CalendarParameterUpdateNotSupportedException("meeting.frequency", defaultUserMessage);
             }
@@ -384,7 +404,19 @@ public class Calendar extends AbstractAuditableCustom<AppUser, Long> {
             actualChanges.put(secondRemindarParamName, newValue);
             this.secondReminder = newValue;
         }
-
+        
+        final String timeFormat = command.stringValueOfParameterNamed(CALENDAR_SUPPORTED_PARAMETERS.Time_Format.getValue());
+        final String time = CALENDAR_SUPPORTED_PARAMETERS.MEETING_TIME.getValue();
+        if (command.isChangeInTimeParameterNamed(CALENDAR_SUPPORTED_PARAMETERS.MEETING_TIME.getValue(), this.meetingtime,timeFormat)) {
+            final String newValue = command.stringValueOfParameterNamed(CALENDAR_SUPPORTED_PARAMETERS.MEETING_TIME.getValue());
+            actualChanges.put(CALENDAR_SUPPORTED_PARAMETERS.MEETING_TIME.getValue(), newValue);
+            LocalDateTime timeInLocalDateTimeFormat=command.localTimeValueOfParameterNamed(time);
+            if(timeInLocalDateTimeFormat!=null){
+            this.meetingtime= timeInLocalDateTimeFormat.toDate();
+            }
+           
+        }
+        
         return actualChanges;
     }
 
@@ -454,6 +486,10 @@ public class Calendar extends AbstractAuditableCustom<AppUser, Long> {
 
     public Integer getSecondReminder() {
         return this.secondReminder;
+    }
+    
+    public Date getMeetingTime(){
+        return this.meetingtime;
     }
 
     public LocalDate getStartDateLocalDate() {
@@ -557,15 +593,15 @@ public class Calendar extends AbstractAuditableCustom<AppUser, Long> {
         return recurrenceBuilder.toString();
     }
 
-    public boolean isValidRecurringDate(final LocalDate compareDate) {
+    public boolean isValidRecurringDate(final LocalDate compareDate, Boolean isSkipRepaymentOnFirstMonth, Integer numberOfDays) {
 
         if (isBetweenStartAndEndDate(compareDate)) { return CalendarUtils.isValidRedurringDate(getRecurrence(), getStartDateLocalDate(),
-                compareDate); }
+                compareDate, isSkipRepaymentOnFirstMonth, numberOfDays); }
 
         // validate with history details.
         for (CalendarHistory history : history()) {
             if (history.isBetweenStartAndEndDate(compareDate)) { return CalendarUtils.isValidRedurringDate(history.getRecurrence(),
-                    history.getStartDateLocalDate(), compareDate); }
+                    history.getStartDateLocalDate(), compareDate, isSkipRepaymentOnFirstMonth, numberOfDays); }
         }
 
         return false;
@@ -580,5 +616,13 @@ public class Calendar extends AbstractAuditableCustom<AppUser, Long> {
         this.recurrence = newRecurrence;
         this.startDate = startDate.toDate();
         this.endDate = endDate.toDate();
+    }
+    
+    public Set<CalendarHistory> getCalendarHistory(){
+    	return this.calendarHistory;
+    }
+    
+    public void updateCalendarHistory(final Set<CalendarHistory> calendarHistory){
+    	this.calendarHistory = calendarHistory;
     }
 }

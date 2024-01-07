@@ -57,6 +57,7 @@ import org.apache.fineract.portfolio.loanaccount.loanschedule.exception.Schedule
 import org.apache.fineract.portfolio.loanaccount.rescheduleloan.domain.LoanRescheduleModel;
 import org.apache.fineract.portfolio.loanaccount.rescheduleloan.domain.LoanRescheduleModelRepaymentPeriod;
 import org.apache.fineract.portfolio.loanaccount.rescheduleloan.domain.LoanRescheduleRequest;
+import org.apache.fineract.portfolio.loanaccount.service.LoanUtilService;
 import org.apache.fineract.portfolio.loanproduct.domain.LoanProductMinimumRepaymentScheduleRelatedDetail;
 import org.joda.time.Days;
 import org.joda.time.LocalDate;
@@ -185,7 +186,8 @@ public abstract class AbstractLoanScheduleGenerator implements LoanScheduleGener
 
             // calculated interest start date for the period
             LocalDate periodStartDateApplicableForInterest = calculateInterestStartDateForPeriod(loanApplicationTerms,
-                    scheduleParams.getPeriodStartDate(), idealDisbursementDate, firstRepaymentdate);
+                    scheduleParams.getPeriodStartDate(), idealDisbursementDate, firstRepaymentdate, 
+                    loanApplicationTerms.isInterestChargedFromDateSameAsDisbursalDateEnabled(), loanApplicationTerms.getExpectedDisbursementDate());
 
             // Loan Schedule Exceptions that need to be applied for Loan Account
             LoanTermVariationParams termVariationParams = applyLoanTermVariations(loanApplicationTerms, scheduleParams,
@@ -249,7 +251,8 @@ public abstract class AbstractLoanScheduleGenerator implements LoanScheduleGener
                 continue;
             }
             periodStartDateApplicableForInterest = calculateInterestStartDateForPeriod(loanApplicationTerms,
-                    scheduleParams.getPeriodStartDate(), idealDisbursementDate, firstRepaymentdate);
+                    scheduleParams.getPeriodStartDate(), idealDisbursementDate, firstRepaymentdate, 
+                    loanApplicationTerms.isInterestChargedFromDateSameAsDisbursalDateEnabled(), loanApplicationTerms.getExpectedDisbursementDate());
 
             // backup for pre-close transaction
             updateCompoundingDetails(scheduleParams, periodStartDateApplicableForInterest);
@@ -632,7 +635,8 @@ public abstract class AbstractLoanScheduleGenerator implements LoanScheduleGener
                             // calculates period start date for interest
                             // calculation as per the configuration
                             periodStartDateApplicableForInterest = calculateInterestStartDateForPeriod(loanApplicationTerms,
-                                    scheduleParams.getPeriodStartDate(), idealDisbursementDate, firstRepaymentdate);
+                                    scheduleParams.getPeriodStartDate(), idealDisbursementDate, firstRepaymentdate,
+                                    loanApplicationTerms.isInterestChargedFromDateSameAsDisbursalDateEnabled(), loanApplicationTerms.getExpectedDisbursementDate());
 
                             int daysInPeriodApplicable = Days.daysBetween(periodStartDateApplicableForInterest, transactionDate).getDays();
                             Money interestForThisinstallment = Money.zero(currency);
@@ -1534,9 +1538,12 @@ public abstract class AbstractLoanScheduleGenerator implements LoanScheduleGener
      * 
      * @param firstRepaymentdate
      *            TODO
+     * @param boolean1 
+     * @param localDate 
      */
     private LocalDate calculateInterestStartDateForPeriod(final LoanApplicationTerms loanApplicationTerms, LocalDate periodStartDate,
-            final LocalDate idealDisbursementDate, final LocalDate firstRepaymentdate) {
+            final LocalDate idealDisbursementDate, final LocalDate firstRepaymentdate, final Boolean isInterestChargedFromDateSameAsDisbursalDateEnabled, 
+            final LocalDate expectedDisbursementDate) {
         LocalDate periodStartDateApplicableForInterest = periodStartDate;
         if (periodStartDate.isBefore(idealDisbursementDate) || firstRepaymentdate.isAfter(periodStartDate)) {
             if (loanApplicationTerms.getInterestChargedFromLocalDate() != null) {
@@ -1544,9 +1551,11 @@ public abstract class AbstractLoanScheduleGenerator implements LoanScheduleGener
                         || loanApplicationTerms.getInterestChargedFromLocalDate().isAfter(periodStartDate)) {
                     periodStartDateApplicableForInterest = loanApplicationTerms.getInterestChargedFromLocalDate();
                 }
+            } else if(loanApplicationTerms.getInterestChargedFromLocalDate() == null && isInterestChargedFromDateSameAsDisbursalDateEnabled) {
+                periodStartDateApplicableForInterest = expectedDisbursementDate;
             } else if (periodStartDate.isEqual(loanApplicationTerms.getExpectedDisbursementDate())) {
                 periodStartDateApplicableForInterest = idealDisbursementDate;
-            }
+            } 
         }
         return periodStartDateApplicableForInterest;
     }
@@ -1573,7 +1582,7 @@ public abstract class AbstractLoanScheduleGenerator implements LoanScheduleGener
     public LoanRescheduleModel reschedule(final MathContext mathContext, final LoanRescheduleRequest loanRescheduleRequest,
             final ApplicationCurrency applicationCurrency, final HolidayDetailDTO holidayDetailDTO,
             final CalendarInstance restCalendarInstance, final CalendarInstance compoundingCalendarInstance, final Calendar loanCalendar,
-            final FloatingRateDTO floatingRateDTO) {
+            final FloatingRateDTO floatingRateDTO, final boolean isSkipRepaymentonmonthFirst, final Integer numberofdays) {
 
         final Loan loan = loanRescheduleRequest.getLoan();
         final LoanSummary loanSummary = loan.getSummary();
@@ -1715,7 +1724,7 @@ public abstract class AbstractLoanScheduleGenerator implements LoanScheduleGener
 
             // get the loan application terms from the Loan object
             final LoanApplicationTerms loanApplicationTerms = loan.getLoanApplicationTerms(applicationCurrency, restCalendarInstance,
-                    compoundingCalendarInstance, loanCalendar, floatingRateDTO);
+                    compoundingCalendarInstance, loanCalendar, floatingRateDTO, isSkipRepaymentonmonthFirst, numberofdays);
 
             // for applying variations
             Collection<LoanTermVariationsData> loanTermVariations = loanApplicationTerms.getLoanTermVariations().getInterestRateChanges();

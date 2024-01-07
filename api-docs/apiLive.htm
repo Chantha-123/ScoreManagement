@@ -90,7 +90,7 @@
 <body>
 	<div id="page-wrapper">
 		<div id="flybar">
-			<div id="nav-logo">0.1.0-incubating</div>
+			<div id="nav-logo">16.04.01.RELEASE</div>
 			<div class="flybar-nav">
 				<h2 class="flybar-button">Overview</h2>
 				<div class="flybar-menu-overview">
@@ -508,6 +508,14 @@
 								<td><a href="#savingsaccounts_retrieve">Retrieve a savings application/account</a></td>
 								<td><a href="#savingsaccounts_update">Modify a savings application</a></td>
 								<td><a href="#savingsaccounts_delete">Delete a savings application</a></td>
+							</tr>
+							<tr>
+								<td></td>
+								<td>savingsaccounts/{accountId}?command=updateWithHoldTax</td>
+								<td></td>
+								<td></td>
+								<td><a href="#savingsaccounts_withholdtaxupdate">Modify savings application withhold tax</a></td>
+								<td></td>
 							</tr>
 							<tr>
 								<td></td>
@@ -2168,6 +2176,40 @@
 								<td></td>
 								<td></td>
 							</tr>
+							<tr>
+								<td><a href="#taxcomponent">Tax Component</a></td>
+								<td>taxes/component</td>
+								<td><a href="#create_taxcomponent">Create Tax Component</a></td>
+								<td><a href="#taxcomponents_list">List Tax Components</a></td>
+								<td></td>
+								<td></td>
+							</tr>
+							<tr>
+								<td></td>
+								<td>taxes/component/{taxComponentId}</td>
+								<td></td>
+								<td><a href="#retrieve_taxcomponent">Retrieve Tax component</a></td>
+								<td><a href="#update_taxcomponent">Update Tax Component</a></td>
+								<td></td>
+								<td></td>
+							</tr>
+							<tr>
+								<td><a href="#taxgroup">Tax Group</a></td>
+								<td>taxes/group</td>
+								<td><a href="#create_taxgroup">Create Tax Group</a></td>
+								<td><a href="#taxgroup_list">List Tax Groups</a></td>
+								<td></td>
+								<td></td>
+							</tr>
+							<tr>
+								<td></td>
+								<td>taxes/group/{taxGroupId}</td>
+								<td></td>
+								<td><a href="#retrieve_taxgroup">Retrieve Tax Group</a></td>
+								<td><a href="#update_taxgroup">Update Tax Group</a></td>
+								<td></td>
+								<td></td>
+							</tr>
 						</table>
 					</div>
 				</div>
@@ -3159,10 +3201,42 @@
 								<td></td>
 							</tr>
 							<tr>
-								<td><a href="#selfloan">Loans</a></td>
+								<td><a href="#selfloantemplate">Loans</a></td>
+								<td>self/loans/template?templateType=individual</td>
+								<td></td>
+								<td><a href="#selfloantemplate">Loan Application Template</a></td>
+								<td></td>
+								<td></td>
+							</tr>
+							<tr>
+								<td></td>
+								<td>self/loans?command=calculateLoanSchedule</td>
+								<td><a href="#selfloancalc">Calculate Loan Repayment Schedule</a></td>
+								<td></td>
+								<td></td>
+								<td></td>
+							</tr>
+							<tr>
+								<td></td>
+								<td>self/loans</td>
+								<td><a href="#selfloanapply">Submit new Loan Application</a></td>
+								<td></td>
+								<td></td>
+								<td></td>
+							</tr>
+							<tr>
+								<td></td>
 								<td>self/loans/{loanId}</td>
 								<td></td>
 								<td><a href="#selfloan">Retrieve a Loan</a></td>
+								<td><a href="#selfloanupdate">Update a Loan Application</a></td>
+								<td></td>
+							</tr>
+							<tr>
+								<td></td>
+								<td>self/loans/{loanId}?command=withdrawnByApplicant</td>
+								<td><a href="#selfloanwithdraw">Withdraw Loan Application</a></td>
+								<td></td>
 								<td></td>
 								<td></td>
 							</tr>
@@ -19425,6 +19499,13 @@ Content-Type: application/json
 				<tr class=alt><td>minRequiredBalance</td></tr>
 	            <tr><td class=fielddesc><b>Optional</b>: If provided, sets an indicator of the minimum required balance of the  savings account e.g. <b>5,000</b> else set the limit as zero. Note that <span>enforceMinRequiredBalance</span> determines if the minimum required balance is enforced</td></tr>
 
+				<tr class=alt><td>withHoldTax</td></tr>
+	            <tr><td class=fielddesc><b>Optional</b>: If provided, sets an indicator for applying withhold tax on interest posting for savings account </td></tr>
+
+				<tr class=alt><td>taxGroupId</td></tr>
+	            <tr><td class=fielddesc><b>Optional</b>: If withhold tax set as true, with hold tax will be applied as per the tax group provided </td></tr>
+
+				
 	        </table>
 	    </div>
 	</div>
@@ -19996,7 +20077,7 @@ Content-Type: application/json
             <br/>
             <table class=matrixHeading>
                 <tr class="matrixHeadingBG"><td><div class="fineractHeading2">Optional Fields</div></td></tr>
-                <tr class=alt><td>minRequiredOpeningBalance, lockinPeriodFrequency, lockinPeriodFrequencyType, withdrawalFeeForTransfers, paymentChannelToFundSourceMappings, feeToIncomeAccountMappings, penaltyToIncomeAccountMappings, charges, allowOverdraft, overdraftLimit, minBalanceForInterestCalculation</tr>
+                <tr class=alt><td>minRequiredOpeningBalance, lockinPeriodFrequency, lockinPeriodFrequencyType, withdrawalFeeForTransfers, paymentChannelToFundSourceMappings, feeToIncomeAccountMappings, penaltyToIncomeAccountMappings, charges, allowOverdraft, overdraftLimit, minBalanceForInterestCalculation,withHoldTax,taxGroupId</tr>
             </table>
         </div>
         <div class="method-example">
@@ -20434,6 +20515,12 @@ Content-Type: application/json
 					product and the type of the accounting rule to be used
 					<span>Example Values:</span>1=NONE,2=CASH_BASED</td>
 				</tr>
+				<tr class=alt><td>withHoldTax</td></tr>
+	            <tr><td class=fielddesc><b>Optional</b>: If provided, sets an indicator for applying withhold tax on interest posting for savings account </td></tr>
+
+				<tr class=alt><td>taxGroupId</td></tr>
+	            <tr><td class=fielddesc><b>Optional</b>: If withhold tax set as true, with hold tax will be applied as per the tax group provided </td></tr>
+
 
 	        </table>
 	    </div>
@@ -20460,7 +20547,7 @@ Content-Type: application/json
             <br/>
             <table class=matrixHeading>
                 <tr class="matrixHeadingBG"><td><div class="fineractHeading2">Optional Fields</div></td></tr>
-                <tr class=alt><td>lockinPeriodFrequency, lockinPeriodFrequencyType, maxDepositTerm, maxDepositTermTypeId, inMultiplesOfDepositTerm, inMultiplesOfDepositTermTypeId, preClosurePenalApplicable, preClosurePenalInterest, preClosurePenalInterestOnTypeId, feeToIncomeAccountMappings, penaltyToIncomeAccountMappings, charges, charts</tr>
+                <tr class=alt><td>lockinPeriodFrequency, lockinPeriodFrequencyType, maxDepositTerm, maxDepositTermTypeId, inMultiplesOfDepositTerm, inMultiplesOfDepositTermTypeId, preClosurePenalApplicable, preClosurePenalInterest, preClosurePenalInterestOnTypeId, feeToIncomeAccountMappings, penaltyToIncomeAccountMappings, charges, charts, , withHoldTax, taxGroupId</tr>
             </table>
         </div>
         <div class="method-example">
@@ -20936,6 +21023,11 @@ Content-Type: application/json
 					product and the type of the accounting rule to be used
 					<span>Example Values:</span>1=NONE,2=CASH_BASED</td>
 				</tr>
+				<tr class=alt><td>withHoldTax</td></tr>
+	            <tr><td class=fielddesc><b>Optional</b>: If provided, sets an indicator for applying withhold tax on interest posting for savings account </td></tr>
+
+				<tr class=alt><td>taxGroupId</td></tr>
+	            <tr><td class=fielddesc><b>Optional</b>: If withhold tax set as true, with hold tax will be applied as per the tax group provided </td></tr>
 
 	        </table>
 	    </div>
@@ -20962,7 +21054,7 @@ Content-Type: application/json
             <br/>
             <table class=matrixHeading>
                 <tr class="matrixHeadingBG"><td><div class="fineractHeading2">Optional Fields</div></td></tr>
-                <tr class=alt><td>lockinPeriodFrequency, lockinPeriodFrequencyType, maxDepositTerm, maxDepositTermTypeId, inMultiplesOfDepositTerm, inMultiplesOfDepositTermTypeId, preClosurePenalApplicable, preClosurePenalInterest, preClosurePenalInterestOnTypeId, feeToIncomeAccountMappings, penaltyToIncomeAccountMappings, charges, charts, minDepositAmount, maxDepositAmount</tr>
+                <tr class=alt><td>lockinPeriodFrequency, lockinPeriodFrequencyType, maxDepositTerm, maxDepositTermTypeId, inMultiplesOfDepositTerm, inMultiplesOfDepositTermTypeId, preClosurePenalApplicable, preClosurePenalInterest, preClosurePenalInterestOnTypeId, feeToIncomeAccountMappings, penaltyToIncomeAccountMappings, charges, charts, minDepositAmount, maxDepositAmount, withHoldTax, taxGroupId</tr>
             </table>
         </div>
         <div class="method-example">
@@ -21448,6 +21540,10 @@ Content-Type: application/json
 
 				<tr class=alt><td>overdraftLimit</td></tr>
 	            <tr><td class=fielddesc><b>Optional</b>: If provided, sets the maximum allowed overdraft amount for a  savings account e.g. <b>5,000</b> else set the limit as zero</td></tr>
+				
+				<tr class=alt><td>withHoldTax</td></tr>
+	            <tr><td class=fielddesc><b>Optional</b>: If tax group provided at product level, will allow to Enable or disable withhold tax on interest posting for savings account </td></tr>
+
 
 	        </table>
 	    </div>
@@ -21812,7 +21908,7 @@ Content-Type: application/json
 	        <br/>
 	        <table class=matrixHeading>
 	            <tr class="matrixHeadingBG"><td><div class="fineractHeading2">Inherited from Product (if not provided)</div></td></tr>
-	            <tr class=alt><td>nominalAnnualInterestRate, interestCompoundingPeriodType, interestCalculationType, interestCalculationDaysInYearType, minRequiredOpeningBalance, lockinPeriodFrequency, lockinPeriodFrequencyType, withdrawalFeeForTransfers, allowOverdraft, overdraftLimit</td>
+	            <tr class=alt><td>nominalAnnualInterestRate, interestCompoundingPeriodType, interestCalculationType, interestCalculationDaysInYearType, minRequiredOpeningBalance, lockinPeriodFrequency, lockinPeriodFrequencyType, withdrawalFeeForTransfers, allowOverdraft, overdraftLimit, withHoldTax</td>
 	       		</tr>
 	        </table>
 	    </div>
@@ -22529,6 +22625,34 @@ No Request Body:
     "locale": "en"
   }
 }
+	        </code>
+	    </div>
+	</div>
+	
+	
+	<a id="savingsaccounts_withholdtaxupdate" name="savingsaccounts_withholdtaxupdate" class="old-syle-anchor">&nbsp;</a>
+	<div class="method-section">
+	    <div class="method-description">
+	        <h2>Modify savings account withhold tax applicability</h2>
+	        <p>Savings application's withhold tax can  be modified when in 'Active' state. Once the application is activated, can modify the account withhold tax to post tax or vice-versa</p>
+	    </div>
+	    <div class="method-example">
+	        <code class="method-declaration">PUT https://Domain Name/api/v1/savingsaccounts/{accountsId}?command=updateWithHoldTax</code>
+	        <code class="method-request">PUT savingsaccounts/1?command=updateWithHoldTax
+Content-Type: application/json
+No Request Body:
+			{
+				"withHoldTax": false
+			}
+	        </code>
+	        <code class="method-response">
+			{
+				"savingsId": 138,
+				"resourceId": 138,
+				"changes": {
+					"withHoldTax": false
+				}
+			}
 	        </code>
 	    </div>
 	</div>
@@ -23620,6 +23744,9 @@ No Request Body:
 	            <tr>
 	            	<td class=fielddesc><b>Optional</b>: Must provide when <i>preClosurePenalApplicable</i> is true. Used along with <i>preClosurePenalInterest</i> to decide what should be the applicable interest rate to which penalalty can be applied on Pre-mature closure of accounts. 1=Whole Term, 2=Till Premature withdrawal e.g. “1%” means 1% less than the interest rate applicable till premature withdrawal.</td>
 	            </tr>
+				<tr class=alt><td>withHoldTax</td></tr>
+	            <tr><td class=fielddesc><b>Optional</b>: If tax group provided at product level, will allow to Enable or disable withhold tax on interest posting for savings account </td></tr>
+
 
 	        </table>
 	    </div>
@@ -23984,7 +24111,7 @@ No Request Body:
 	        <br/>
 	        <table class=matrixHeading>
 	            <tr class="matrixHeadingBG"><td><div class="fineractHeading2">Inherited from Product (if not provided)</div></td></tr>
-	            <tr class=alt><td>interestCompoundingPeriodType, interestCalculationType, interestCalculationDaysInYearType, lockinPeriodFrequency, lockinPeriodFrequencyType, preClosurePenalApplicable, preClosurePenalInterest, preClosurePenalInterestOnTypeId, charts</td>
+	            <tr class=alt><td>interestCompoundingPeriodType, interestCalculationType, interestCalculationDaysInYearType, lockinPeriodFrequency, lockinPeriodFrequencyType, preClosurePenalApplicable, preClosurePenalInterest, preClosurePenalInterestOnTypeId, charts, withHoldTax</td>
 	       		</tr>
 	        </table>
 	    </div>
@@ -25084,6 +25211,10 @@ No Request Body:
 	            	<td class=fielddesc><b>Optional</b>: Must provide when <i>preClosurePenalApplicable</i> is true. Used along with <i>preClosurePenalInterest</i> to decide what should be the applicable interest rate to which penalalty can be applied on Pre-mature closure of accounts. 1=Whole Term, 2=Till Premature withdrawal e.g. “1%” means 1% less than the interest rate applicable till premature withdrawal.</td>
 	            </tr>
 
+				<tr class=alt><td>withHoldTax</td></tr>
+	            <tr><td class=fielddesc><b>Optional</b>: If tax group provided at product level, will allow to Enable or disable withhold tax on interest posting for savings account </td></tr>
+
+				
 	        </table>
 	    </div>
 	</div>
@@ -25447,7 +25578,7 @@ No Request Body:
 	        <br/>
 	        <table class=matrixHeading>
 	            <tr class="matrixHeadingBG"><td><div class="fineractHeading2">Inherited from Product (if not provided)</div></td></tr>
-	            <tr class=alt><td>interestCompoundingPeriodType, interestCalculationType, interestCalculationDaysInYearType, lockinPeriodFrequency, lockinPeriodFrequencyType, preClosurePenalApplicable, preClosurePenalInterest, preClosurePenalInterestOnTypeId, charts</td>
+	            <tr class=alt><td>interestCompoundingPeriodType, interestCalculationType, interestCalculationDaysInYearType, lockinPeriodFrequency, lockinPeriodFrequencyType, preClosurePenalApplicable, preClosurePenalInterest, preClosurePenalInterestOnTypeId, charts, withHoldTax</td>
 	       		</tr>
 	        </table>
 	    </div>
@@ -37573,6 +37704,529 @@ No Request Body:
 				</div>
 			</div>
 			<!-- End of floatingrates -->
+			
+			<!-- Tax components-->
+			<a id="taxcomponent" name="taxcomponent" class="old-syle-anchor">&nbsp;</a>
+			<div class="method-section">
+				<div class="method-description">
+					<h3>Tax Components</h3>
+					<p>This defines the Tax Components</p>
+					<table class=matrixHeading>
+						<tr class="matrixHeadingBG">
+							<td><div class="fineractHeading2">Field Descriptions</div></td>
+						</tr>
+						<tr class=alt>
+							<td>name</td>
+						</tr>
+						<tr>
+							<td class=fielddesc>Name of the Tax component
+							</td>
+						</tr>
+						<tr class=alt>
+							<td>percentage</td>
+						</tr>
+						<tr>
+							<td class=fielddesc>
+								Percentage that should be applied on a amount as tax.
+							</td>
+						</tr>
+						<tr class=alt>
+							<td>debitAccountType</td>
+						</tr>
+						<tr>
+							<td class=fielddesc>
+								Debit Account type that should be applicable only for particular cases depending on requirement ex with hold tax doesn't require debit account for the accounting operation. .
+							</td>
+						</tr>
+						<tr class=alt>
+							<td>debitAcountId</td>
+						</tr>
+						<tr>
+							<td class=fielddesc>
+								GL Account that should debited when tax applied. used only for particular cases depending on requirement ex with hold tax doesn't require debit account for the accounting operation. .
+							</td>
+						</tr>
+						<tr>
+							<td class=fielddesc>
+								Credit Account type that should be applicable only for particular cases depending on requirement ex with hold tax  require credit account for the accounting operation. .
+							</td>
+						</tr>
+						<tr class=alt>
+							<td>debitAcountId</td>
+						</tr>
+						<tr>
+							<td class=fielddesc>
+								GL Account that should credited when tax applied. used only for particular cases depending on requirement ex with hold tax require only credit account for the accounting operation. .
+							</td>
+						</tr>
+						<tr class=alt>
+							<td>startDate</td>
+						</tr>
+						<tr>
+							<td class=fielddesc>
+								Start date from which this tax component is applicable.
+							</td>
+						</tr>
+					</table>
+				</div>
+			</div>
+
+			<a id="create_taxcomponent" name="create_taxcomponent"
+			   class="old-syle-anchor">&nbsp;</a>
+			<div class="method-section">
+				<div class="method-description">
+					<h4>Create a new Tax Component</h4>
+					<p>Creates a new Tax Component</p>
+					<table class=matrixHeading>
+						<tr class="matrixHeadingBG">
+							<td><div class="fineractHeading2">Mandatory Fields</div></td>
+						</tr>
+						<tr class=alt>
+							<td>name</td>
+						</tr>
+						<tr class=alt>
+							<td>percentage</td>
+						</tr>
+					</table>
+					<table class=matrixHeading>
+						<tr class="matrixHeadingBG">
+							<td><div class="fineractHeading2">Optional Fields</div></td>
+						</tr>
+						<tr class=alt>
+							<td>debitAccountType</td>
+						</tr>
+						<tr class=alt>
+							<td>debitAcountId</td>
+						</tr>
+						<tr class=alt>
+							<td>creditAccountType</td>
+						</tr>
+						<tr class=alt>
+							<td>creditAcountId</td>
+						</tr>
+						<tr class=alt>
+							<td>startDate</td>
+						</tr>
+					</table>
+				</div>
+				<div class="method-example">
+					<code class="method-declaration">
+					POST https://DomainName/api/v1/taxes/component
+					</code>
+					<code class="method-request">
+					POST taxes/component
+					Content-Type: application/json
+					Request Body:
+					{
+						"name": "tax component 1",
+						"percentage": "10",
+						"creditAccountType": 2,
+						"creditAcountId": 4,
+						"locale": "en",
+						"dateFormat": "dd MMMM yyyy",
+						"startDate": "11 April 2016"
+					}
+					</code>
+					<code class="method-response">
+					{
+						"resourceId": 1
+					}
+					</code>
+				</div>
+			</div>
+			<a id="taxcomponents_list" name="taxcomponents_list"
+			   class="old-syle-anchor">&nbsp;</a>
+			<div class="method-section">
+				<div class="method-description">
+					<h4>List Tax Components</h4>
+					<p>List Tax Components/p>
+				</div>
+				<div class="method-example">
+					<code class="method-declaration">
+					GET https://DomainName/api/v1/taxes/component
+					</code>
+					<code class="method-request">
+					GET taxes/component
+					Content-Type: application/json
+					</code>
+					<code class="method-response">
+					[{
+						"id": 1,
+						"name": "tax component 1",
+						"percentage": 10.000000,
+						"creditAccountType": {
+							"id": 2,
+							"code": "accountType.liability",
+							"value": "LIABILITY"
+						},
+						"creditAccount": {
+							"id": 4,
+							"name": "ACCOUNT_NAME_7BR9C",
+							"glCode": "LIABILITY_PA1460364665046"
+						},
+						"startDate": [2016,
+						4,
+						11],
+						"taxComponentHistories": [{
+							
+						}]
+					},
+					{
+						"id": 2,
+						"name": "tax component 2",
+						"percentage": 10.000000,
+						"creditAccountType": {
+							"id": 2,
+							"code": "accountType.liability",
+							"value": "LIABILITY"
+						},
+						"creditAccount": {
+							"id": 4,
+							"name": "ACCOUNT_NAME_7BR9C",
+							"glCode": "LIABILITY_PA1460364665046"
+						},
+						"startDate": [2016,
+						4,
+						11],
+						"taxComponentHistories": [{
+							
+						}]
+					}]	
+					</code>
+				</div>
+			</div>
+			<a id="retrieve_taxcomponent" name="retrieve_taxcomponent"
+			   class="old-syle-anchor">&nbsp;</a>
+			<div class="method-section">
+				<div class="method-description">
+					<h4>Retrieve Tax Component</h4>
+					<p>Retrieve Tax Component</p>
+				</div>
+				<div class="method-example">
+					<code class="method-declaration">
+					GET https://DomainName/api/v1/taxes/component/1
+					</code>
+					<code class="method-request">
+					GET taxes/component/1
+					Content-Type: application/json
+					</code>
+					<code class="method-response">
+					{
+						"id": 1,
+						"name": "tax component 1",
+						"percentage": 10.000000,
+						"creditAccountType": {
+							"id": 2,
+							"code": "accountType.liability",
+							"value": "LIABILITY"
+						},
+						"creditAccount": {
+							"id": 4,
+							"name": "ACCOUNT_NAME_7BR9C",
+							"glCode": "LIABILITY_PA1460364665046"
+						},
+						"startDate": [2016,
+						4,
+						11],
+						"taxComponentHistories": [{
+							
+						}]
+					}
+					</code>
+				</div>
+			</div>
+						<a id="update_taxcomponent" name="update_taxcomponent"
+			   class="old-syle-anchor">&nbsp;</a>
+			<div class="method-section">
+				<div class="method-description">
+					<h4>Update Tax Component</h4>
+					<p>Updates Tax component. Debit and credit account details cannot be modified.
+					All the future tax components would be replaced with the new percentage.</p>
+				</div>
+				<div class="method-example">
+					<code class="method-declaration">
+					PUT https://DomainName/api/v1/taxes/component/1
+					</code>
+					<code class="method-request">
+					PUT taxes/component/1
+					Content-Type: application/json
+					Request Body:
+					{
+						"name": "tax component 2",
+						"percentage": "15",
+						"locale": "en",
+						"dateFormat": "dd MMMM yyyy",
+						"startDate": "15 April 2016"
+					}
+					</code>
+					<code class="method-response">
+					{
+						"resourceId": 1,
+						"changes": {
+							"percentage": 15,
+							"name": "tax component 2",
+							"startDate": [2016,
+							4,
+							15]
+						}
+					}
+					</code>
+				</div>
+			</div>
+			<!-- End of Tax component -->
+
+			<!-- Tax components-->
+			<a id="taxgroup" name="taxgroup" class="old-syle-anchor">&nbsp;</a>
+			<div class="method-section">
+				<div class="method-description">
+					<h3>Tax Group</h3>
+					<p>This defines the Tax Group</p>
+					<table class=matrixHeading>
+						<tr class="matrixHeadingBG">
+							<td><div class="fineractHeading2">Field Descriptions</div></td>
+						</tr>
+						<tr class=alt>
+							<td>name</td>
+						</tr>
+						<tr>
+							<td class=fielddesc>Name of the Tax Group
+							</td>
+						</tr>
+						<tr class=alt>
+							<td>taxComponents</td>
+						</tr>
+						<tr>
+							<td class=fielddesc>
+								Array of tax components to be added part of tax group.
+							</td>
+						</tr>
+						<tr class=alt>
+							<td>id</td>
+						</tr>
+						<tr>
+							<td class=fielddesc>
+								Tax group and tax component mapping id.
+							</td>
+						</tr>
+						<tr class=alt>
+							<td>taxComponentId</td>
+						</tr>
+						<tr>
+							<td class=fielddesc>
+								Tax component id.
+							</td>
+						</tr>
+						<tr class=alt>
+							<td>startDate</td>
+						</tr>
+						<tr>
+							<td class=fielddesc>
+								Start date from which this tax component is applicable.
+							</td>
+						</tr>
+						<tr class=alt>
+							<td>endDate</td>
+						</tr>
+						<tr>
+							<td class=fielddesc>
+								End date from which this tax component is applicable.
+							</td>
+						</tr>
+					</table>
+				</div>
+			</div>
+
+			<a id="create_taxgroup" name="create_taxgroup"
+			   class="old-syle-anchor">&nbsp;</a>
+			<div class="method-section">
+				<div class="method-description">
+					<h4>Create a new Tax Group</h4>
+					<p>Creates a new Tax Group</p>
+					<table class=matrixHeading>
+						<tr class="matrixHeadingBG">
+							<td><div class="fineractHeading2">Mandatory Fields</div></td>
+						</tr>
+						<tr class=alt>
+							<td>name</td>
+						</tr>
+						<tr class=alt>
+							<td>taxComponents</td>
+						</tr>
+					</table>
+					<table class=matrixHeading>
+						<tr class="matrixHeadingBG">
+							<td><div class="fineractHeading2">Mandatory Fields in taxComponents</div></td>
+						</tr>
+						<tr class=alt>
+							<td>taxComponentId</td>
+						</tr>
+					</table>
+					<table class=matrixHeading>
+					<tr class="matrixHeadingBG">
+							<td><div class="fineractHeading2">Optional Fields in taxComponents</div></td>
+						</tr>
+						<tr class=alt>
+							<td>id</td>
+						</tr>
+						<tr class=alt>
+							<td>startDate</td>
+						</tr>
+						<tr class=alt>
+							<td>endDate</td>
+						</tr>
+					</table>
+				</div>
+				<div class="method-example">
+					<code class="method-declaration">
+					POST https://DomainName/api/v1/taxes/group
+					</code>
+					<code class="method-request">
+					POST taxes/component
+					Content-Type: application/json
+					Request Body:
+					{
+						"name": "tax group 1",
+						"locale": "en",
+						"taxComponents": [{
+							"taxComponentId": 7,
+							"startDate": "11 April 2016"
+						}],
+						"dateFormat": "dd MMMM yyyy"
+					}  
+					</code>
+					<code class="method-response">
+					{
+						"resourceId": 1
+					}
+					</code>
+				</div>
+			</div>
+			<a id="taxgroup_list" name="taxgroup_list"
+			   class="old-syle-anchor">&nbsp;</a>
+			<div class="method-section">
+				<div class="method-description">
+					<h4>List Tax Group</h4>
+					<p>List Tax Group/p>
+				</div>
+				<div class="method-example">
+					<code class="method-declaration">
+					GET https://DomainName/api/v1/taxes/group
+					</code>
+					<code class="method-request">
+					GET taxes/group
+					Content-Type: application/json
+					</code>
+					<code class="method-response">
+					[{
+						"id": 6,
+						"name": "Tax_component_Name_PAX65",
+						"taxAssociations": [{
+							"id": 6,
+							"taxComponent": {
+								"id": 6,
+								"name": "Tax_component_Name_FPNXE"
+							},
+							"startDate": [2013,
+							1,
+							1]
+						}]
+					},
+					{
+						"id": 7,
+						"name": "tax group 1",
+						"taxAssociations": [{
+							"id": 7,
+							"taxComponent": {
+								"id": 7,
+								"name": "tax component 2"
+							},
+							"startDate": [2016,
+							4,
+							11]
+						}]
+					}]	
+					</code>
+				</div>
+			</div>
+			<a id="retrieve_taxgroup" name="retrieve_taxgroup"
+			   class="old-syle-anchor">&nbsp;</a>
+			<div class="method-section">
+				<div class="method-description">
+					<h4>Retrieve Tax Group</h4>
+					<p>Retrieve Tax Group</p>
+				</div>
+				<div class="method-example">
+					<code class="method-declaration">
+					GET https://DomainName/api/v1/taxes/group/1
+					</code>
+					<code class="method-request">
+					GET taxes/group/1
+					Content-Type: application/json
+					</code>
+					<code class="method-response">
+					{
+						"id": 7,
+						"name": "tax group 1",
+						"taxAssociations": [{
+							"id": 7,
+							"taxComponent": {
+								"id": 7,
+								"name": "tax component 2"
+							},
+							"startDate": [2016,
+							4,
+							11]
+						}]
+					}
+					</code>
+				</div>
+			</div>
+						<a id="update_taxgroup" name="update_taxgroup"
+			   class="old-syle-anchor">&nbsp;</a>
+			<div class="method-section">
+				<div class="method-description">
+					<h4>Update Tax Group</h4>
+					<p>Updates Tax Group. Only end date can be up-datable and can insert new tax components.</p>
+				</div>
+				<div class="method-example">
+					<code class="method-declaration">
+					PUT https://DomainName/api/v1/taxes/group/1
+					</code>
+					<code class="method-request">
+					PUT taxes/group/1
+					Content-Type: application/json
+					Request Body:
+					{
+						"name": "tax group 2",
+						"locale": "en",
+						"taxComponents": [{
+							"id": 7,
+							"taxComponentId": 7,
+							"endDate": "22 April 2016"
+						},
+						{
+							"taxComponentId": 6,
+							"startDate": "14 April 2016"
+						}],
+						"dateFormat": "dd MMMM yyyy"
+					}
+					</code>
+					<code class="method-response">
+					{
+						"resourceId": 7,
+						"changes": {
+							"addComponents": [6],
+							"modifiedComponents": [{
+								"endDate": "Apr 22, 2016 12:00:00 AM",
+								"taxComponentId": 7
+							}],
+							"name": "tax group 2"
+						}
+					}
+					</code>
+				</div>
+			</div>
+			<!-- End of Tax Group -->
 
 		<!-- start of clients api docs -->
 		<a id="templates" name="clients" class="old-syle-anchor">&nbsp;</a>
@@ -39210,10 +39864,10 @@ No Request Body
 				</div>
 				<div class="method-example">
 					<code class="method-declaration">
-POST https://DomainName/api/v1/userdetails?access_token={access_token}
+POST https://DomainName/api/v1/self/userdetails?access_token={access_token}
 					</code>
 					<code class="method-request">
-POST userdetails?access_token=bWlmb3M6cGFzc3dvcmQ=
+POST self/userdetails?access_token=bWlmb3M6cGFzc3dvcmQ=
 Content-Type: application/json
 No Request Body
 					</code>
@@ -39989,6 +40643,610 @@ GET https://DomainName/api/v1/self/clients/{clientId}/transaction/{transactionId
 				</div>
 			</div>
 
+			<a id="selfloantemplate" name="selfloantemplate" class="old-syle-anchor">&nbsp;</a>
+			<div class="method-section">
+				<div class="method-description">
+					<h4>Retrieve Loan Details Template</h4>
+					<p>This is a convenience resource. It can be useful when
+						building maintenance user interface screens for client
+						applications. The template data returned consists of any or all
+						of:
+					<ul>
+						<li class=normalli>Field Defaults</li>
+						<li class=normalli>Allowed Value Lists</li>
+					</ul>
+					</p>
+					<h5>Arguments</h5>
+					<dl class="argument-list">
+						<dt>templateType</dt>
+						<dd>
+							String <span>mandatory</span>, only allowed value is <span>individual</span>
+						</dd>
+						<dd>
+							<br>templateType value decides the required template data for creating a new loan application.
+
+						</dd>
+						<dd>
+							<br><b>'individual':</b> Loan template data for creating individual loans.
+						</dd>
+						<dt>clientId</dt>
+						<dd>
+							Integer <span>mandatory</span>
+						</dd>
+					</dl>
+					<h5>Optional Arguments</h5>
+					<dl class="argument-list">
+						<dt>productId</dt>
+						<dd>
+							Integer <span>optional</span>
+						</dd>
+						<dd>If entered, productId, productName and selectedProduct
+							fields are returned.</dd>
+
+					</dl>
+					<p>Example Requests:</p>
+					<div class=apiClick>self/loans/template?templateType=individual&clientId=1</div>
+					<br>
+					<br>
+					<div class=apiClick>self/loans/template?templateType=individual&clientId=1&productId=1</div>
+				</div>
+				<div class="method-example">
+					<code class="method-declaration">
+GET https://DomainName/api/v1/self/loans/template?templateType=individual&clientId=1
+					</code>
+					<code class="method-response">
+{
+  "clientId": 1,
+  "clientName": "Kampala first Client",
+  "clientOfficeId": 2,
+  "timeline": {
+    "expectedDisbursementDate": [
+      2013,
+      3,
+      8
+    ]
+  },
+  "productOptions": [
+    {
+      "id": 1,
+      "name": "Kampala Product (with cash accounting)"
+    }
+  ]
+}
+					</code>
+					<code class="method-declaration">
+GET https://DomainName/api/v1/self/loans/template?templateType=individual&clientId=1&productId=1
+					</code>
+					<code class="method-response">
+{
+  "clientId": 1,
+  "clientName": "Kampala first Client",
+  "clientOfficeId": 2,
+  "loanProductId": 1,
+  "loanProductName": "Kampala Product (with cash accounting)",
+  "loanProductDescription": "Typical Kampala loan product with cash accounting enabled for testing.",
+  "currency": {
+    "code": "UGX",
+    "name": "Uganda Shilling",
+    "decimalPlaces": 2,
+    "displaySymbol": "USh",
+    "nameCode": "currency.UGX",
+    "displayLabel": "Uganda Shilling (USh)"
+  },
+  "principal": 1000000,
+  "termFrequency": 12,
+  "termPeriodFrequencyType": {
+    "id": 2,
+    "code": "repaymentFrequency.periodFrequencyType.months",
+    "value": "Months"
+  },
+  "numberOfRepayments": 12,
+  "repaymentEvery": 1,
+  "repaymentFrequencyType": {
+    "id": 2,
+    "code": "repaymentFrequency.periodFrequencyType.months",
+    "value": "Months"
+  },
+  "interestRatePerPeriod": 24,
+  "interestRateFrequencyType": {
+    "id": 3,
+    "code": "interestRateFrequency.periodFrequencyType.years",
+    "value": "Per year"
+  },
+  "annualInterestRate": 24,
+  "amortizationType": {
+    "id": 1,
+    "code": "amortizationType.equal.installments",
+    "value": "Equal installments"
+  },
+  "interestType": {
+    "id": 1,
+    "code": "interestType.flat",
+    "value": "Flat"
+  },
+  "interestCalculationPeriodType": {
+    "id": 1,
+    "code": "interestCalculationPeriodType.same.as.repayment.period",
+    "value": "Same as repayment period"
+  },
+  "transactionProcessingStrategyId": 2,
+  "timeline": {
+    "expectedDisbursementDate": [
+      2013,
+      3,
+      8
+    ]
+  },
+  "daysInMonthType": {
+    "id": 30,
+    "code": "DaysInMonthType.days360",
+    "value": "30 Days"
+  },
+  "daysInYearType": {
+	"id": 360,
+	"code": "DaysInYearType.days360",
+	"value": "360 Days"
+  },
+  "isInterestRecalculationEnabled": true,
+  "interestRecalculationData": {
+    "interestRecalculationCompoundingType": {
+      "id": 2,
+      "code": "interestRecalculationCompoundingMethod.fee",
+      "value": "Fee"
+    },
+	"recalculationCompoundingFrequencyType": {
+		    "id":1,
+			"code":"interestRecalculationFrequencyType.same.as.repayment.period",
+			"value":"Same as repayment period"
+	},
+    "rescheduleStrategyType": {
+      "id": 2,
+      "code": "loanRescheduleStrategyMethod.reduce.number.of.installments",
+      "value": "Reduce number of installments"
+    },
+	"recalculationRestFrequencyType": {
+		    "id":1,
+			"code":"interestRecalculationFrequencyType.same.as.repayment.period",
+			"value":"Same as repayment period"
+	}
+  }
+  "charges": [],
+  "productOptions": [
+    {
+      "id": 1,
+      "name": "Kampala Product (with cash accounting)"
+    }
+  ],
+  "loanOfficerOptions": [
+    {
+      "id": 2,
+      "firstname": "Kampala",
+      "lastname": "LoanOfficer",
+      "displayName": "LoanOfficer, Kampala",
+      "officeId": 2,
+      "officeName": "Uganda (Kampala)",
+      "isLoanOfficer": true
+    }
+  ],
+  "loanPurposeOptions": [
+    {
+      "id": 20,
+      "name": "option.Agriculture",
+      "position": 1
+    },
+    {
+      "id": 21,
+      "name": "option.Manufacturing",
+      "position": 20
+    },
+    {
+      "id": 22,
+      "name": "option.HousingImprovement",
+      "position": 21
+    }
+  ],
+  "termFrequencyTypeOptions": [
+    {
+      "id": 0,
+      "code": "loanTermFrequency.periodFrequencyType.days",
+      "value": "Days"
+    },
+    {
+      "id": 1,
+      "code": "loanTermFrequency.periodFrequencyType.weeks",
+      "value": "Weeks"
+    },
+    {
+      "id": 2,
+      "code": "loanTermFrequency.periodFrequencyType.months",
+      "value": "Months"
+    },
+    {
+      "id": 3,
+      "code": "loanTermFrequency.periodFrequencyType.years",
+      "value": "Years"
+    }
+  ],
+  "repaymentFrequencyTypeOptions": [
+    {
+      "id": 0,
+      "code": "repaymentFrequency.periodFrequencyType.days",
+      "value": "Days"
+    },
+    {
+      "id": 1,
+      "code": "repaymentFrequency.periodFrequencyType.weeks",
+      "value": "Weeks"
+    },
+    {
+      "id": 2,
+      "code": "repaymentFrequency.periodFrequencyType.months",
+      "value": "Months"
+    }
+  ],
+  "interestRateFrequencyTypeOptions": [
+    {
+      "id": 2,
+      "code": "interestRateFrequency.periodFrequencyType.months",
+      "value": "Per month"
+    },
+    {
+      "id": 3,
+      "code": "interestRateFrequency.periodFrequencyType.years",
+      "value": "Per year"
+    }
+  ],
+  "amortizationTypeOptions": [
+    {
+      "id": 1,
+      "code": "amortizationType.equal.installments",
+      "value": "Equal installments"
+    },
+    {
+      "id": 0,
+      "code": "amortizationType.equal.principal",
+      "value": "Equal principle payments"
+    }
+  ],
+  "interestTypeOptions": [
+    {
+      "id": 1,
+      "code": "interestType.flat",
+      "value": "Flat"
+    },
+    {
+      "id": 0,
+      "code": "interestType.declining.balance",
+      "value": "Declining Balance"
+    }
+  ],
+  "interestCalculationPeriodTypeOptions": [
+    {
+      "id": 0,
+      "code": "interestCalculationPeriodType.daily",
+      "value": "Daily"
+    },
+    {
+      "id": 1,
+      "code": "interestCalculationPeriodType.same.as.repayment.period",
+      "value": "Same as repayment period"
+    }
+  ],
+  "transactionProcessingStrategyOptions": [
+    {
+      "id": 2,
+      "code": "heavensfamily-strategy",
+      "name": "Heavensfamily"
+    }
+  ],
+  "chargeOptions": [
+    {
+      "id": 1,
+      "name": "Bank Fee (per installment)",
+      "active": true,
+      "penalty": false,
+      "currency": {
+        "code": "UGX",
+        "name": "Uganda Shilling",
+        "decimalPlaces": 2,
+        "displaySymbol": "USh",
+        "nameCode": "currency.UGX",
+        "displayLabel": "Uganda Shilling (USh)"
+      },
+      "amount": 1500,
+      "chargeTimeType": {
+        "id": 2,
+        "code": "chargeTimeType.specifiedDueDate",
+        "value": "Specified due date"
+      },
+      "chargeAppliesTo": {
+        "id": 1,
+        "code": "chargeAppliesTo.loan",
+        "value": "Loan"
+      },
+      "chargeCalculationType": {
+        "id": 1,
+        "code": "chargeCalculationType.flat",
+        "value": "Flat"
+      }
+    }
+  ],
+  "loanCollateralOptions": [
+    {
+      "id": 17,
+      "name": "option.House",
+      "position": 1
+    },
+    {
+      "id": 18,
+      "name": "option.Television",
+      "position": 17
+    },
+    {
+      "id": 19,
+      "name": "option.Gold",
+      "position": 18
+    }
+  ],
+  "accountLinkingOptions":[
+  	{
+  		"id":1,
+  		"accountNo":"000000001",
+  		"clientId":1,
+  		"clientName":"pramod nuthakki",
+  		"productId":1,
+  		"productName":"pramod sav",
+  		"fieldOfficerId":0,
+  		"currency":{"code":"USD","name":"US Dollar","decimalPlaces":2,"displaySymbol":"$","nameCode":"currency.USD","displayLabel":"US Dollar ($)"}
+  	}
+  ]
+}
+					</code>
+				</div>
+			</div>
+
+			<a id="selfloancalc" name="selfloancalc" class="old-syle-anchor">&nbsp;</a>
+			<div class="method-section">
+				<div class="method-description">
+					<h4>Calculate Loan Repayment Schedule</h4>
+					<table class=matrixHeading>
+						<tr class="matrixHeadingBG">
+							<td><div class="fineractHeading2">Mandatory Fields</div></td>
+						</tr>
+						<tr class=alt>
+							<td>productId, principal, loanTermFrequency,
+								loanTermFrequencyType, numberOfRepayments, repaymentEvery,
+								repaymentFrequencyType, interestRatePerPeriod,
+								amortizationType, interestType,
+								interestCalculationPeriodType, expectedDisbursementDate,
+								transactionProcessingStrategyId</td>
+						</tr>
+					</table>
+				</div>
+				<div class="method-example">
+					<code class="method-declaration">
+POST https://DomainName/api/v1/self/loans?command=calculateLoanSchedule
+					</code>
+					<code class="method-request">
+POST self/loans?command=calculateLoanSchedule
+Content-Type: application/json
+Request Body:
+{
+    "dateFormat": "dd MMMM yyyy",
+    "locale": "en_GB",
+    "productId": 1,
+    "principal": "100,000.00",
+    "loanTermFrequency": 12,
+    "loanTermFrequencyType": 2,
+    "numberOfRepayments": 12,
+    "repaymentEvery": 1,
+    "repaymentFrequencyType": 2,
+    "interestRatePerPeriod": 2,
+    "amortizationType": 1,
+    "interestType": 0,
+    "interestCalculationPeriodType": 1,
+    "expectedDisbursementDate": "20 September 2011",
+    "transactionProcessingStrategyId": 2
+}
+					</code>
+					<code class="method-response">
+{
+  "currency": {
+    "code": "UGX",
+    "name": "Uganda Shilling",
+    "decimalPlaces": 2,
+    "displaySymbol": "USh",
+    "nameCode": "currency.UGX",
+    "displayLabel": "Uganda Shilling (USh)"
+  },
+  "loanTermInDays": 366,
+  "totalPrincipalDisbursed": 100000,
+  "totalPrincipalExpected": 100000,
+  "totalPrincipalPaid": 0,
+  "totalInterestCharged": 13471.52,
+  "totalFeeChargesCharged": 0,
+  "totalPenaltyChargesCharged": 0,
+  "totalWaived": 0,
+  "totalWrittenOff": 0,
+  "totalRepaymentExpected": 113471.52,
+  "totalRepayment": 0,
+  "totalOutstanding": 0,
+  "periods": [
+    {
+      "period": 0,
+      "dueDate": [
+        2011,
+        9,
+        20
+      ],
+      "principalDisbursed": 100000,
+      "principalLoanBalanceOutstanding": 100000,
+      "feeChargesDue": 0,
+      "feeChargesOutstanding": 0,
+      "totalOriginalDueForPeriod": 0,
+      "totalDueForPeriod": 0,
+      "totalOutstandingForPeriod": 0,
+      "totalOverdue": 0,
+      "totalActualCostOfLoanForPeriod": 0
+    },
+    {
+      "period": 1,
+      "fromDate": [
+        2011,
+        9,
+        20
+      ],
+      "dueDate": [
+        2011,
+        10,
+        20
+      ],
+      "daysInPeriod": 30,
+      "principalOriginalDue": 7455.96,
+      "principalDue": 7455.96,
+      "principalOutstanding": 7455.96,
+      "principalLoanBalanceOutstanding": 92544.04,
+      "interestOriginalDue": 2000,
+      "interestDue": 2000,
+      "interestOutstanding": 2000,
+      "feeChargesDue": 0,
+      "penaltyChargesDue": 0,
+      "totalOriginalDueForPeriod": 9455.96,
+      "totalDueForPeriod": 9455.96,
+      "totalPaidForPeriod": 0,
+      "totalOutstandingForPeriod": 9455.96,
+      "totalOverdue": 9455.96,
+      "totalActualCostOfLoanForPeriod": 2000
+    },
+    ...
+    ...
+    {
+      "period": 12,
+      "fromDate": [
+        2012,
+        8,
+        20
+      ],
+      "dueDate": [
+        2012,
+        9,
+        20
+      ],
+      "daysInPeriod": 31,
+      "principalOriginalDue": 9270.56,
+      "principalDue": 9270.56,
+      "principalOutstanding": 9270.56,
+      "principalLoanBalanceOutstanding": 0,
+      "interestOriginalDue": 185.4,
+      "interestDue": 185.4,
+      "interestOutstanding": 185.4,
+      "feeChargesDue": 0,
+      "penaltyChargesDue": 0,
+      "totalOriginalDueForPeriod": 9455.96,
+      "totalDueForPeriod": 9455.96,
+      "totalPaidForPeriod": 0,
+      "totalOutstandingForPeriod": 9455.96,
+      "totalOverdue": 9455.96,
+      "totalActualCostOfLoanForPeriod": 185.4
+    }
+  ]
+}
+					</code>
+				</div>
+			</div>
+			
+			
+			<a id="selfloanapply" name="selfloanapply" class="old-syle-anchor">&nbsp;</a>
+			<div class="method-section">
+				<div class="method-description">
+					<h4>Submit a new Loan Application</h4>
+					<p>Only individual loanType can be used by Self Service User </p>
+					<table class=matrixHeading>
+						<tr class="matrixHeadingBG">
+							<td><div class="fineractHeading2">Mandatory Fields</div></td>
+						</tr>
+						<tr class=alt>
+							<td>clientId, productId, principal, loanTermFrequency,
+								loanTermFrequencyType, loanType, numberOfRepayments, repaymentEvery,
+								repaymentFrequencyType, interestRatePerPeriod,
+								amortizationType, interestType,
+								interestCalculationPeriodType, transactionProcessingStrategyId,
+								expectedDisbursementDate, submittedOnDate, loanType</td>
+						</tr>
+					</table>
+					<br/>
+					<table class=matrixHeading>
+						<tr class="matrixHeadingBG">
+							<td><div class="fineractHeading2">Additional Mandatory Fields if interest recalculation is enabled for product and Rest frequency  not same as repayment period</div></td>
+						</tr>
+						<tr class=alt>
+							<td>recalculationRestFrequencyDate</td>
+						</tr>
+					</table>
+					<table class=matrixHeading>
+						<tr class="matrixHeadingBG">
+							<td><div class="fineractHeading2">Additional Mandatory Fields if interest recalculation with interest/fee compounding is enabled for product and compounding frequency not same as repayment period</div></td>
+						</tr>
+						<tr class=alt>
+							<td>recalculationCompoundingFrequencyDate</td>
+						</tr>
+					</table>
+					<br/>
+					<table class=matrixHeading>
+						<tr class="matrixHeadingBG">
+							<td><div class="fineractHeading2">Optional Fields</div></td>
+						</tr>
+						<tr class=alt>
+							<td>graceOnPrincipalPayment, graceOnInterestPayment, graceOnInterestCharged, linkAccountId, allowPartialPeriodInterestCalcualtion,
+								 fixedEmiAmount, maxOutstandingLoanBalance, disbursementData, graceOnArrearsAgeing, createStandingInstructionAtDisbursement (requires linkedAccountId if set to true)
+							</td>
+						</tr>
+					</table>
+				</div>
+				<div class="method-example">
+					<code class="method-declaration">
+POST https://DomainName/api/v1/self/loans
+					</code>
+					<code class="method-request">
+POST self/loans
+Content-Type: application/json
+Request Body:
+{
+    "dateFormat": "dd MMMM yyyy",
+    "locale": "en_GB",
+    "clientId": 1,
+    "productId": 1,
+    "principal": "10,000.00",
+    "loanTermFrequency": 12,
+    "loanTermFrequencyType": 2,
+    "loanType": "individual",
+    "numberOfRepayments": 10,
+    "repaymentEvery": 1,
+    "repaymentFrequencyType": 2,
+    "interestRatePerPeriod": 10,
+    "amortizationType": 1,
+    "interestType": 0,
+    "interestCalculationPeriodType": 1,
+    "transactionProcessingStrategyId": 1,
+    "expectedDisbursementDate": "10 Jun 2013",
+    "submittedOnDate": "10 Jun 2013",
+    "linkAccountId" : "1",
+    "fixedEmiAmount":1100,
+    "maxOutstandingLoanBalance":"35000",
+    "disbursementData":[{"expectedDisbursementDate":"01 November 2013",
+    					"principal":22000,"approvedPrincipal":22000}]
+}
+					</code>
+					<code class="method-response">
+{
+    "officeId": 1,
+    "clientId": 1,
+    "loanId": 1,
+    "resourceId": 1
+}
+					</code>
+				</div>
+			</div>
 			<a id="selfloan" name="selfloan" class="old-syle-anchor">&nbsp;</a>
 			<div class="method-section">
 				<div class="method-description">
@@ -40259,6 +41517,108 @@ GET https://DomainName/api/v1/self/loans/{loanId}
       }
     }
   ]
+  }
+}
+					</code>
+				</div>
+			</div>
+
+			<a id="selfloanupdate" name="selfloanupdate" class="old-syle-anchor">&nbsp;</a>
+			<div class="method-section">
+				<div class="method-description">
+					<h2>Update a Loan Application</h2>
+					<p>Loan application can only be modified when in 'Submitted and pending approval' state. Once the application is approved, the details cannot be changed using this method.</p>
+				</div>
+				<div class="method-example">
+					<code class="method-declaration">PUT https://Domain Name/api/v1/self/loans/{loanId}</code>
+					<code class="method-request">PUT self/loans/1
+Content-Type: application/json
+No Request Body:
+{
+  "locale": "en",
+  "dateFormat": "dd MMMM yyyy",
+  "productId": 1,
+  "principal": "5000",
+  "loanTermFrequency": 10,
+  "loanTermFrequencyType": 0,
+  "numberOfRepayments": 10,
+  "repaymentEvery": 1,
+  "repaymentFrequencyType": 0,
+  "interestRatePerPeriod": 2,
+  "interestType": 0,
+  "interestCalculationPeriodType": 0,
+  "amortizationType": 1,
+  "expectedDisbursementDate": "04 March 2014",
+  "transactionProcessingStrategyId": 1
+}
+					</code>
+					<code class="method-response">
+{
+  "officeId": 2,
+  "clientId": 1,
+  "loanId": 1,
+  "resourceId": 1,
+  "changes": {
+    "principal": 5000,
+    "locale": "en"
+  }
+}
+					</code>
+				</div>
+			</div>
+
+			<a id="selfloanwithdraw" name="selfloanwithdraw" class="old-syle-anchor">&nbsp;</a>
+			<div class="method-section">
+				<div class="method-description">
+					<h4>Applicant Withdraws from Loan Application</h4>
+					<table class=matrixHeading>
+						<tr class="matrixHeadingBG">
+							<td><div class="fineractHeading2">Mandatory Fields</div></td>
+						</tr>
+						<tr class=alt>
+							<td>withdrawnOnDate</td>
+						</tr>
+					</table>
+				</div>
+				<div class="method-example">
+					<code class="method-declaration">
+POST https://DomainName/api/v1/self/loans/{loanId}?command=withdrawnByApplicant
+					</code>
+					<code class="method-request">
+POST self/loans/1?command=withdrawnByApplicant
+Content-Type: application/json
+Request Body:
+{
+    "locale": "en",
+    "dateFormat": "dd MMMM yyyy",
+    "withdrawnOnDate": "20 September 2011",
+    "note": "Reason loan applicant withdrew from application."
+}
+</code>
+					<code class="method-response">
+{
+  "officeId": 1,
+  "clientId": 1,
+  "loanId": 2,
+  "resourceId": 2,
+  "changes": {
+    "status": {
+      "id": 400,
+      "code": "loanStatusType.withdrawn.by.client",
+      "value": "Withdrawn by applicant",
+      "pendingApproval": false,
+      "waitingForDisbursal": false,
+      "active": false,
+      "closedObligationsMet": false,
+      "closedWrittenOff": false,
+      "closedRescheduled": false,
+      "closed": false,
+      "overpaid": false
+    },
+    "locale": "en",
+    "dateFormat": "dd MMMM yyyy",
+    "withdrawnOnDate": "20 September 2011",
+    "closedOnDate": "20 September 2011"
   }
 }
 					</code>
@@ -42288,6 +43648,14 @@ No Request Body:
 					<td><a href="#savingsaccounts_retrieve">Retrieve a savings application/account</a></td>
 					<td><a href="#savingsaccounts_update">Modify a savings application</a></td>
 					<td><a href="#savingsaccounts_delete">Delete a savings application</a></td>
+				</tr>
+				<tr>
+					<td></td>
+					<td>savingsaccounts/{accountId}?command=updateWithHoldTax</td>
+					<td></td>
+					<td></td>
+					<td><a href="#savingsaccounts_withholdtaxupdate">Modify savings application withhold tax</a></td>
+					<td></td>
 				</tr>
 				<tr>
 					<td></td>
