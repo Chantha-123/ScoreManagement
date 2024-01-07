@@ -22,7 +22,9 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -437,6 +439,12 @@ public class LoanAccountDomainServiceJpa implements LoanAccountDomainService {
     @Override
     public void recalculateAccruals(Loan loan) {
         LocalDate accruedTill = loan.getAccruedTill();
+        boolean isOrganisationDateEnabled = this.configurationDomainService.isOrganisationstartDateEnabled();
+        Date organisationStartDate = new Date();
+        if(isOrganisationDateEnabled){
+            organisationStartDate = this.configurationDomainService.retrieveOrganisationStartDate(); 
+        }
+        
         if (!loan.isPeriodicAccrualAccountingEnabledOnLoanProduct() || !loan.repaymentScheduleDetail().isInterestRecalculationEnabled()
                 || accruedTill == null || loan.isNpa() || !loan.status().isActive()) { return; }
         Collection<LoanScheduleAccrualData> loanScheduleAccrualDatas = new ArrayList<>();
@@ -454,33 +462,12 @@ public class LoanAccountDomainServiceJpa implements LoanAccountDomainService {
         Set<LoanCharge> loanCharges = loan.charges();
 
         for (LoanRepaymentScheduleInstallment installment : installments) {
-            if (!accruedTill.isBefore(installment.getDueDate())
-                    || (accruedTill.isAfter(installment.getFromDate()) && !accruedTill.isAfter(installment.getDueDate()))) {
-                BigDecimal dueDateFeeIncome = BigDecimal.ZERO;
-                BigDecimal dueDatePenaltyIncome = BigDecimal.ZERO;
-                LocalDate chargesTillDate = installment.getDueDate();
-                if (!accruedTill.isAfter(installment.getDueDate())) {
-                    chargesTillDate = accruedTill;
-                }
-
-                for (final LoanCharge loanCharge : loanCharges) {
-                    if (loanCharge.isDueForCollectionFromAndUpToAndIncluding(installment.getFromDate(), chargesTillDate)) {
-                        if (loanCharge.isFeeCharge()) {
-                            dueDateFeeIncome = dueDateFeeIncome.add(loanCharge.amount());
-                        } else if (loanCharge.isPenaltyCharge()) {
-                            dueDatePenaltyIncome = dueDatePenaltyIncome.add(loanCharge.amount());
-                        }
-                    }
-                }
-                LoanScheduleAccrualData accrualData = new LoanScheduleAccrualData(loanId, officeId, installment.getInstallmentNumber(),
-                        accrualStartDate, repaymentFrequency, repayEvery, installment.getDueDate(), installment.getFromDate(),
-                        installment.getId(), loanProductId, installment.getInterestCharged(currency).getAmount(), installment
-                                .getFeeChargesCharged(currency).getAmount(), installment.getPenaltyChargesCharged(currency).getAmount(),
-                        installment.getInterestAccrued(currency).getAmount(), installment.getFeeAccrued(currency).getAmount(), installment
-                                .getPenaltyAccrued(currency).getAmount(), currencyData, interestCalculatedFrom, installment
-                                .getInterestWaived(currency).getAmount());
-                loanScheduleAccrualDatas.add(accrualData);
-
+            if (installment.getDueDate().isAfter(loan.getMaturityDate())) {
+                accruedTill = DateUtils.getLocalDateOfTenant();
+            }
+            if(!isOrganisationDateEnabled || new LocalDate(organisationStartDate).isBefore(installment.getDueDate())){
+                generateLoanScheduleAccrualData(accruedTill, loanScheduleAccrualDatas, loanId, officeId, accrualStartDate, repaymentFrequency, 
+                        repayEvery, interestCalculatedFrom, loanProductId, currency, currencyData, loanCharges, installment);
             }
         }
 
@@ -490,6 +477,41 @@ public class LoanAccountDomainServiceJpa implements LoanAccountDomainService {
                 String globalisationMessageCode = "error.msg.accrual.exception";
                 throw new GeneralPlatformDomainRuleException(globalisationMessageCode, error, error);
             }
+        }
+    }
+
+    private void generateLoanScheduleAccrualData(final LocalDate accruedTill, final Collection<LoanScheduleAccrualData> loanScheduleAccrualDatas, 
+            final Long loanId, Long officeId, final LocalDate accrualStartDate, final PeriodFrequencyType repaymentFrequency, final Integer repayEvery, 
+            final LocalDate interestCalculatedFrom, final Long loanProductId, final MonetaryCurrency currency, final CurrencyData currencyData, 
+            final Set<LoanCharge> loanCharges, final LoanRepaymentScheduleInstallment installment) {
+        
+        if (!accruedTill.isBefore(installment.getDueDate())
+                || (accruedTill.isAfter(installment.getFromDate()) && !accruedTill.isAfter(installment.getDueDate()))) {
+            BigDecimal dueDateFeeIncome = BigDecimal.ZERO;
+            BigDecimal dueDatePenaltyIncome = BigDecimal.ZERO;
+            LocalDate chargesTillDate = installment.getDueDate();
+            if (!accruedTill.isAfter(installment.getDueDate())) {
+                chargesTillDate = accruedTill;
+            }
+
+            for (final LoanCharge loanCharge : loanCharges) {
+                if (loanCharge.isDueForCollectionFromAndUpToAndIncluding(installment.getFromDate(), chargesTillDate)) {
+                    if (loanCharge.isFeeCharge()) {
+                        dueDateFeeIncome = dueDateFeeIncome.add(loanCharge.amount());
+                    } else if (loanCharge.isPenaltyCharge()) {
+                        dueDatePenaltyIncome = dueDatePenaltyIncome.add(loanCharge.amount());
+                    }
+                }
+            }
+            LoanScheduleAccrualData accrualData = new LoanScheduleAccrualData(loanId, officeId, installment.getInstallmentNumber(),
+                    accrualStartDate, repaymentFrequency, repayEvery, installment.getDueDate(), installment.getFromDate(),
+                    installment.getId(), loanProductId, installment.getInterestCharged(currency).getAmount(), installment
+                            .getFeeChargesCharged(currency).getAmount(), installment.getPenaltyChargesCharged(currency).getAmount(),
+                    installment.getInterestAccrued(currency).getAmount(), installment.getFeeAccrued(currency).getAmount(), installment
+                            .getPenaltyAccrued(currency).getAmount(), currencyData, interestCalculatedFrom, installment
+                            .getInterestWaived(currency).getAmount());
+            loanScheduleAccrualDatas.add(accrualData);
+
         }
     }
 
@@ -553,9 +575,134 @@ public class LoanAccountDomainServiceJpa implements LoanAccountDomainService {
         return newRefundTransaction;
     }
 
+    @Override
+    public Map<String, Object> foreCloseLoan(final Loan loan, final LocalDate foreClosureDate, final String noteText) {
+        this.businessEventNotifierService.notifyBusinessEventToBeExecuted(BUSINESS_EVENTS.LOAN_FORECLOSURE,
+                constructEntityMap(BUSINESS_ENTITY.LOAN, loan));
+        MonetaryCurrency currency = loan.getCurrency();
+        LocalDateTime createdDate = DateUtils.getLocalDateTimeOfTenant();
+        final Map<String, Object> changes = new LinkedHashMap<>();
+        List<LoanTransaction> newTransactions = new ArrayList<>();
+
+        final List<Long> existingTransactionIds = new ArrayList<>();
+        final List<Long> existingReversedTransactionIds = new ArrayList<>();
+        existingTransactionIds.addAll(loan.findExistingTransactionIds());
+        existingReversedTransactionIds.addAll(loan.findExistingReversedTransactionIds());
+        final ScheduleGeneratorDTO scheduleGeneratorDTO = null;
+        AppUser appUser = getAppUserIfPresent();
+        final LoanRepaymentScheduleInstallment foreCloseDetail = loan.fetchLoanForeclosureDetail(foreClosureDate);
+        if (loan.isPeriodicAccrualAccountingEnabledOnLoanProduct()
+                && (loan.getAccruedTill() == null || !foreClosureDate.isEqual(loan.getAccruedTill()))) {
+            loan.reverseAccrualsAfter(foreClosureDate);
+            Money[] accruedReceivables = loan.getReceivableIncome(foreClosureDate);
+            Money interestPortion = foreCloseDetail.getInterestCharged(currency).minus(accruedReceivables[0]);
+            Money feePortion = foreCloseDetail.getFeeChargesCharged(currency).minus(accruedReceivables[1]);
+            Money penaltyPortion = foreCloseDetail.getPenaltyChargesCharged(currency).minus(accruedReceivables[2]);
+            Money total = interestPortion.plus(feePortion).plus(penaltyPortion);
+            if (total.isGreaterThanZero()) {
+                LoanTransaction accrualTransaction = LoanTransaction.accrueTransaction(loan, loan.getOffice(), foreClosureDate,
+                        total.getAmount(), interestPortion.getAmount(), feePortion.getAmount(), penaltyPortion.getAmount(), appUser);
+                LocalDate fromDate = loan.getDisbursementDate();
+                if (loan.getAccruedTill() != null) {
+                    fromDate = loan.getAccruedTill();
+                }
+                createdDate = createdDate.plusSeconds(1);
+                newTransactions.add(accrualTransaction);
+                loan.getLoanTransactions().add(accrualTransaction);
+                Set<LoanChargePaidBy> accrualCharges = accrualTransaction.getLoanChargesPaid();
+                for (LoanCharge loanCharge : loan.charges()) {
+                    if (loanCharge.isActive()
+                            && !loanCharge.isPaid()
+                            && (loanCharge.isDueForCollectionFromAndUpToAndIncluding(fromDate, foreClosureDate) || loanCharge
+                                    .isInstalmentFee())) {
+                        final LoanChargePaidBy loanChargePaidBy = new LoanChargePaidBy(accrualTransaction, loanCharge, loanCharge
+                                .getAmountOutstanding(currency).getAmount(), null);
+                        accrualCharges.add(loanChargePaidBy);
+                    }
+                }
+            }
+        }
+        
+
+        Money interestPayable = foreCloseDetail.getInterestCharged(currency);
+        Money feePayable = foreCloseDetail.getFeeChargesCharged(currency);
+        Money penaltyPayable = foreCloseDetail.getPenaltyChargesCharged(currency);
+        Money payPrincipal = foreCloseDetail.getPrincipal(currency);        
+        loan.updateInstallmentsPostDate(foreClosureDate);
+
+        LoanTransaction payment = null;
+        
+         
+        if (payPrincipal.plus(interestPayable).plus(feePayable).plus(penaltyPayable).isGreaterThanZero()) {
+            final PaymentDetail paymentDetail = null;
+            String externalId = null;            
+            final LocalDateTime currentDateTime = DateUtils.getLocalDateTimeOfTenant();
+            payment = LoanTransaction.repayment(loan.getOffice(), payPrincipal.plus(interestPayable).plus(feePayable).plus(penaltyPayable),
+                    paymentDetail, foreClosureDate, externalId, currentDateTime, appUser);
+            createdDate = createdDate.plusSeconds(1);
+            payment.updateCreatedDate(createdDate.toDate());
+            payment.updateLoan(loan);
+            newTransactions.add(payment);
+        }
+
+        List<Long> transactionIds = new ArrayList<>();
+        final ChangedTransactionDetail changedTransactionDetail = loan.handleForeClosureTransactions(payment,
+                defaultLoanLifecycleStateMachine(), scheduleGeneratorDTO, appUser);
+
+        /***
+         * TODO Vishwas Batch save is giving me a
+         * HibernateOptimisticLockingFailureException, looping and saving for
+         * the time being, not a major issue for now as this loop is entered
+         * only in edge cases (when a payment is made before the latest payment
+         * recorded against the loan)
+         ***/
+
+        for (LoanTransaction newTransaction : newTransactions) {
+            saveLoanTransactionWithDataIntegrityViolationChecks(newTransaction);
+            transactionIds.add(newTransaction.getId());
+        }
+        changes.put("transactions", transactionIds);
+        changes.put("eventAmount", payPrincipal.getAmount().negate());
+        
+        if (changedTransactionDetail != null) {
+            for (Map.Entry<Long, LoanTransaction> mapEntry : changedTransactionDetail.getNewTransactionMappings().entrySet()) {
+                saveLoanTransactionWithDataIntegrityViolationChecks(mapEntry.getValue());
+                // update loan with references to the newly created transactions
+                loan.getLoanTransactions().add(mapEntry.getValue());
+                updateLoanTransaction(mapEntry.getKey(), mapEntry.getValue());
+            }
+        }
+        
+        saveAndFlushLoanWithDataIntegrityViolationChecks(loan);
+
+        if (StringUtils.isNotBlank(noteText)) {
+            changes.put("note", noteText);
+            final Note note = Note.loanNote(loan, noteText);
+            this.noteRepository.save(note);
+        }
+
+        postJournalEntries(loan, existingTransactionIds, existingReversedTransactionIds, false);
+        this.businessEventNotifierService.notifyBusinessEventWasExecuted(BUSINESS_EVENTS.LOAN_FORECLOSURE,
+                constructEntityMap(BUSINESS_ENTITY.LOAN_TRANSACTION, payment));
+        return changes;
+
+    }
+
+    private LoanRepaymentScheduleInstallment fetchLoanRepaymentScheduleInstallment(LocalDate fromDate, final Loan loan) {
+        LoanRepaymentScheduleInstallment installment = null;
+        for (LoanRepaymentScheduleInstallment loanRepaymentScheduleInstallment : loan.getRepaymentScheduleInstallments()) {
+            if (fromDate.equals(loanRepaymentScheduleInstallment.getFromDate())) {
+                installment = loanRepaymentScheduleInstallment;
+                break;
+            }
+        }
+        return installment;
+    }
+
     private Map<BUSINESS_ENTITY, Object> constructEntityMap(final BUSINESS_ENTITY entityEvent, Object entity) {
         Map<BUSINESS_ENTITY, Object> map = new HashMap<>(1);
         map.put(entityEvent, entity);
         return map;
     }
+
 }

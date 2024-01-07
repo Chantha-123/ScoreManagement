@@ -865,6 +865,7 @@ public class LoanCharge extends AbstractPersistable<Long> {
         this.active = active;
         if (!active) {
             this.overdueInstallmentCharge = null;
+            this.loanTrancheDisbursementCharge = null;
             this.clearLoanInstallmentCharges();
         }
     }
@@ -985,5 +986,9 @@ public class LoanCharge extends AbstractPersistable<Long> {
     
     public boolean isTrancheDisbursementCharge() {
         return ChargeTimeType.fromInt(this.chargeTime).equals(ChargeTimeType.TRANCHE_DISBURSEMENT);
+    }
+    
+    public boolean isDueDateCharge() {
+        return this.dueDate != null;
     }
 }
