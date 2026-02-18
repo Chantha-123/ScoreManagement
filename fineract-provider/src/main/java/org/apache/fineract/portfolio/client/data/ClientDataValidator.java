@@ -211,8 +211,10 @@ public final class ClientDataValidator {
                     .integerGreaterThanZero();
         }
 
-//        final Integer legalFormId = this.fromApiJsonHelper.extractIntegerSansLocaleNamed(ClientApiConstants.legalFormIdParamName, element);
-//        baseDataValidator.reset().parameter(ClientApiConstants.legalFormIdParamName).value(legalFormId).notNull().inMinMaxRange(1, 2);
+        // final Integer legalFormId =
+        // this.fromApiJsonHelper.extractIntegerSansLocaleNamed(ClientApiConstants.legalFormIdParamName, element);
+        // baseDataValidator.reset().parameter(ClientApiConstants.legalFormIdParamName).value(legalFormId).notNull().inMinMaxRange(1,
+        // 2);
 
         if (this.fromApiJsonHelper.parameterExists(ClientApiConstants.datatables, element)) {
             final JsonArray datatables = this.fromApiJsonHelper.extractJsonArrayNamed(ClientApiConstants.datatables, element);

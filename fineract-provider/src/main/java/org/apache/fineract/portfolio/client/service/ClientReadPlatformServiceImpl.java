@@ -725,13 +725,13 @@ public class ClientReadPlatformServiceImpl implements ClientReadPlatformService 
                     submittedByLastname, activationDate, activatedByUsername, activatedByFirstname, activatedByLastname, closedOnDate,
                     closedByUsername, closedByFirstname, closedByLastname);
 
-             ClientData  clientData = ClientData.instance(accountNo, status, subStatus, officeId, officeName, transferToOfficeId, transferToOfficeName, id,
-                    firstname, middlename, lastname, fullname, displayName, externalId, mobileNo, emailAddress, dateOfBirth, gender,
-                    activationDate, imageId, staffId, staffName, timeline, savingsProductId, savingsProductName, savingsAccountId,
-                    clienttype, classification, legalForm, clientNonPerson, isStaff);
-             clientData.setStudy_id(study_year);
-             clientData.setClass_id(class_id);
-             return clientData;
+            ClientData clientData = ClientData.instance(accountNo, status, subStatus, officeId, officeName, transferToOfficeId,
+                    transferToOfficeName, id, firstname, middlename, lastname, fullname, displayName, externalId, mobileNo, emailAddress,
+                    dateOfBirth, gender, activationDate, imageId, staffId, staffName, timeline, savingsProductId, savingsProductName,
+                    savingsAccountId, clienttype, classification, legalForm, clientNonPerson, isStaff);
+            clientData.setStudy_id(study_year);
+            clientData.setClass_id(class_id);
+            return clientData;
 
         }
     }

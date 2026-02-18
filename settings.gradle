@@ -16,6 +16,15 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
+
 rootProject.name='fineract'
 include ':module:dummy:core'
 include ':module:dummy:service'

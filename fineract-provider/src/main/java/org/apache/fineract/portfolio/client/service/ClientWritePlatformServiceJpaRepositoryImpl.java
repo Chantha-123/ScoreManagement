@@ -274,18 +274,16 @@ public class ClientWritePlatformServiceJpaRepositoryImpl implements ClientWriteP
             CodeValue studyYear = null;
             final Long studyYearId = command.longValueOfParameterNamed(ClientApiConstants.studyyearId);
             if (studyYearId != null) {
-            	studyYear = this.codeValueRepository
-                        .findOneByCodeNameAndIdWithNotFoundDetection(ClientApiConstants.StudyYear, studyYearId);
-            } 
-            
-            
+                studyYear = this.codeValueRepository.findOneByCodeNameAndIdWithNotFoundDetection(ClientApiConstants.StudyYear, studyYearId);
+            }
+
             CodeValue studentClass = null;
             final Long studentClassId = command.longValueOfParameterNamed(ClientApiConstants.classoption);
             if (studentClassId != null) {
-            	studentClass = this.codeValueRepository
-                        .findOneByCodeNameAndIdWithNotFoundDetection(ClientApiConstants.Grade, studentClassId);
-            } 
-            
+                studentClass = this.codeValueRepository.findOneByCodeNameAndIdWithNotFoundDetection(ClientApiConstants.Grade,
+                        studentClassId);
+            }
+
             final Long savingsProductId = command.longValueOfParameterNamed(ClientApiConstants.savingsProductIdParamName);
             if (savingsProductId != null) {
                 this.savingsProductRepository.findById(savingsProductId)
@@ -305,9 +303,9 @@ public class ClientWritePlatformServiceJpaRepositoryImpl implements ClientWriteP
 
             final Client newClient = Client.createNew(currentUser, clientOffice, clientParentGroup, staff, savingsProductId, gender,
                     clientType, clientClassification, legalFormValue, command);
-            		newClient.setStudy_year(studyYear);
-            		newClient.setClass_Id(studentClass);
-            		
+            newClient.setStudy_year(studyYear);
+            newClient.setClass_Id(studentClass);
+
             this.clientRepository.saveAndFlush(newClient);
             boolean rollbackTransaction = false;
             if (newClient.isActive()) {
@@ -480,17 +478,16 @@ public class ClientWritePlatformServiceJpaRepositoryImpl implements ClientWriteP
                 clientForUpdate.updateGender(newCodeVal);
             }
 
-            
             if (command.parameterExists(ClientApiConstants.studyyearId)) {
                 final Long newValue = command.longValueOfParameterNamed(ClientApiConstants.studyyearId);
                 CodeValue newCodeVal = null;
                 if (newValue != null) {
-                    newCodeVal = this.codeValueRepository.findOneByCodeNameAndIdWithNotFoundDetection(ClientApiConstants.StudyYear, newValue);
+                    newCodeVal = this.codeValueRepository.findOneByCodeNameAndIdWithNotFoundDetection(ClientApiConstants.StudyYear,
+                            newValue);
                 }
                 clientForUpdate.setStudy_year(newCodeVal);
             }
-            
-           
+
             if (command.parameterExists(ClientApiConstants.classoption)) {
                 final Long newValue = command.longValueOfParameterNamed(ClientApiConstants.classoption);
                 CodeValue newCodeVal = null;
@@ -500,9 +497,6 @@ public class ClientWritePlatformServiceJpaRepositoryImpl implements ClientWriteP
                 clientForUpdate.setClass_Id(newCodeVal);
             }
 
-            
-            
-            
             if (changes.containsKey(ClientApiConstants.clientTypeIdParamName)) {
                 final Long newValue = command.longValueOfParameterNamed(ClientApiConstants.clientTypeIdParamName);
                 CodeValue newCodeVal = null;

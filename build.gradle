@@ -674,3 +674,9 @@ task printSourceSetInformation() {
         }
     }
 }
+rat {
+    excludes = [
+        "**/path/to/the/file",
+        "**/other/files/to/exclude"
+    ]
+}

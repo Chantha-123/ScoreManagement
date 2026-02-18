@@ -21,6 +21,7 @@ package org.apache.fineract.portfolio.client.domain;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
-public interface StudentScoreTransactionRepository extends JpaRepository<StudentScoreTransactions, Long>, JpaSpecificationExecutor<StudentScoreTransactions> {
+public interface StudentScoreTransactionRepository
+        extends JpaRepository<StudentScoreTransactions, Long>, JpaSpecificationExecutor<StudentScoreTransactions> {
 
 }

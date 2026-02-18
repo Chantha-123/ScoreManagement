@@ -25,16 +25,17 @@ import org.apache.fineract.portfolio.client.api.ClientApiConstants;
 
 public class ClientApiCollectionConstants extends ClientApiConstants {
 
-    protected static final Set<String> CLIENT_CREATE_REQUEST_DATA_PARAMETERS = new HashSet<>(Arrays.asList(familyMembers, address,
-            localeParamName, dateFormatParamName, groupIdParamName, accountNoParamName, externalIdParamName, mobileNoParamName,
-            emailAddressParamName, firstnameParamName, middlenameParamName, lastnameParamName, fullnameParamName, officeIdParamName,
-            activeParamName, activationDateParamName, staffIdParamName, submittedOnDateParamName, savingsProductIdParamName,
-            dateOfBirthParamName, genderIdParamName, clientTypeIdParamName, clientClassificationIdParamName,
-            clientNonPersonDetailsParamName, displaynameParamName, legalFormIdParamName, datatables, isStaffParamName,studyyearId,classoption));
+    protected static final Set<String> CLIENT_CREATE_REQUEST_DATA_PARAMETERS = new HashSet<>(
+            Arrays.asList(familyMembers, address, localeParamName, dateFormatParamName, groupIdParamName, accountNoParamName,
+                    externalIdParamName, mobileNoParamName, emailAddressParamName, firstnameParamName, middlenameParamName,
+                    lastnameParamName, fullnameParamName, officeIdParamName, activeParamName, activationDateParamName, staffIdParamName,
+                    submittedOnDateParamName, savingsProductIdParamName, dateOfBirthParamName, genderIdParamName, clientTypeIdParamName,
+                    clientClassificationIdParamName, clientNonPersonDetailsParamName, displaynameParamName, legalFormIdParamName,
+                    datatables, isStaffParamName, studyyearId, classoption));
 
-    protected static final Set<String> CLIENT_NON_PERSON_CREATE_REQUEST_DATA_PARAMETERS = new HashSet<>(
-            Arrays.asList(familyMembers, address, localeParamName, dateFormatParamName, incorpNumberParamName, remarksParamName,
-                    incorpValidityTillParamName, constitutionIdParamName, mainBusinessLineIdParamName, datatables,studyyearId,classoption ));
+    protected static final Set<String> CLIENT_NON_PERSON_CREATE_REQUEST_DATA_PARAMETERS = new HashSet<>(Arrays.asList(familyMembers,
+            address, localeParamName, dateFormatParamName, incorpNumberParamName, remarksParamName, incorpValidityTillParamName,
+            constitutionIdParamName, mainBusinessLineIdParamName, datatables, studyyearId, classoption));
 
     protected static final Set<String> CLIENT_UPDATE_REQUEST_DATA_PARAMETERS = new HashSet<>(Arrays.asList(localeParamName,
             dateFormatParamName, accountNoParamName, externalIdParamName, mobileNoParamName, emailAddressParamName, firstnameParamName,
@@ -42,7 +43,7 @@ public class ClientApiCollectionConstants extends ClientApiConstants {
 
             lastnameParamName, fullnameParamName, activeParamName, activationDateParamName, staffIdParamName, savingsProductIdParamName,
             dateOfBirthParamName, genderIdParamName, clientTypeIdParamName, clientClassificationIdParamName, submittedOnDateParamName,
-            clientNonPersonDetailsParamName, displaynameParamName, legalFormIdParamName, isStaffParamName,studyyearId,classoption));
+            clientNonPersonDetailsParamName, displaynameParamName, legalFormIdParamName, isStaffParamName, studyyearId, classoption));
 
     protected static final Set<String> CLIENT_NON_PERSON_UPDATE_REQUEST_DATA_PARAMETERS = new HashSet<>(
             Arrays.asList(localeParamName, dateFormatParamName, incorpNumberParamName, remarksParamName, incorpValidityTillParamName,
