@@ -94,7 +94,9 @@ public final class LoanApplicationCommandFromApiJsonHelper {
             LoanApiConstants.datatables, LoanApiConstants.isEqualAmortizationParam, LoanProductConstants.RATES_PARAM_NAME,
             LoanApiConstants.applicationId, // glim specific
             LoanApiConstants.lastApplication, // glim specific
-            LoanApiConstants.daysInYearTypeParameterName, LoanApiConstants.fixedPrincipalPercentagePerInstallmentParamName));
+            LoanApiConstants.daysInYearTypeParameterName, 
+            LoanApiConstants.fixedPrincipalPercentagePerInstallmentParamName,
+            LoanApiConstants.BalloonPayment));
 
     private final FromJsonHelper fromApiJsonHelper;
     private final CalculateLoanScheduleQueryFromApiJsonHelper apiJsonHelper;
@@ -247,7 +249,7 @@ public final class LoanApplicationCommandFromApiJsonHelper {
                 repaymentFrequencyDayOfWeekTypeParameterName, element, this.fromApiJsonHelper);
         final String interestTypeParameterName = "interestType";
         final Integer interestType = this.fromApiJsonHelper.extractIntegerSansLocaleNamed(interestTypeParameterName, element);
-        baseDataValidator.reset().parameter(interestTypeParameterName).value(interestType).notNull().inMinMaxRange(0, 1);
+        baseDataValidator.reset().parameter(interestTypeParameterName).value(interestType).notNull().inMinMaxRange(0, 5);
 
         final String interestCalculationPeriodTypeParameterName = "interestCalculationPeriodType";
         final Integer interestCalculationPeriodType = this.fromApiJsonHelper
@@ -687,7 +689,7 @@ public final class LoanApplicationCommandFromApiJsonHelper {
         if (this.fromApiJsonHelper.parameterExists(interestTypeParameterName, element)) {
             atLeastOneParameterPassedForUpdate = true;
             interestType = this.fromApiJsonHelper.extractIntegerWithLocaleNamed(interestTypeParameterName, element);
-            baseDataValidator.reset().parameter(interestTypeParameterName).value(interestType).notNull().inMinMaxRange(0, 1);
+            baseDataValidator.reset().parameter(interestTypeParameterName).value(interestType).notNull().inMinMaxRange(0, 5);
         }
 
         if (loanProduct.isLinkedToFloatingInterestRate()) {

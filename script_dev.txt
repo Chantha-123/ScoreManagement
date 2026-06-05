@@ -1,0 +1,3 @@
+use fineract_default;
+ALTER TABLE m_loan
+Add COLUMN simi_principal_grace DECIMAL(19,0);

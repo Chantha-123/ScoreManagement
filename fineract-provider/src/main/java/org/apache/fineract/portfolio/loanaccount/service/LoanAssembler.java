@@ -187,6 +187,7 @@ public class LoanAssembler {
         final Staff loanOfficer = findLoanOfficerByIdIfProvided(loanOfficerId);
         final LoanTransactionProcessingStrategy loanTransactionProcessingStrategy = findStrategyByIdIfProvided(
                 transactionProcessingStrategyId);
+        final Integer semiGracePrincipalGrace = this.fromApiJsonHelper.extractIntegerWithLocaleNamed("balloonPayment", element);
         CodeValue loanPurpose = null;
         if (loanPurposeId != null) {
             loanPurpose = this.codeValueRepository.findOneWithNotFoundDetection(loanPurposeId);
@@ -349,7 +350,7 @@ public class LoanAssembler {
                 isHolidayEnabled, holidays, workingDays, element, disbursementDetails);
         loanApplication.loanApplicationSubmittal(loanScheduleModel, loanApplicationTerms, defaultLoanLifecycleStateMachine(),
                 submittedOnDate, externalId, allowTransactionsOnHoliday, holidays, workingDays, allowTransactionsOnNonWorkingDay);
-
+       loanApplication.setSimiPrincipalGrace(semiGracePrincipalGrace);
         return loanApplication;
     }
 
