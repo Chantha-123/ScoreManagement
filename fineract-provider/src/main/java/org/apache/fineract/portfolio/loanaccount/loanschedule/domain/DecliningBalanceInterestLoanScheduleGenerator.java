@@ -163,7 +163,7 @@ public class DecliningBalanceInterestLoanScheduleGenerator extends AbstractLoanS
                 totalCumulativePrincipalToDate, periodNumber);
 
         PrincipalInterest principalInterest = new PrincipalInterest(principalForThisInstallment, interestForThisInstallment,
-                interestBroughtFowardDueToGrace);
+                interestBroughtFowardDueToGrace,null);
         principalInterest.setRescheduleInterestPortion(loanApplicationTerms.getInterestTobeApproppriated());
         return principalInterest;
     }

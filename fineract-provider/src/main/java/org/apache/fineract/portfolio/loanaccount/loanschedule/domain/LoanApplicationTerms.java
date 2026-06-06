@@ -866,7 +866,7 @@ public final class LoanApplicationTerms {
             break;
         }
 
-        return new PrincipalInterest(null, interestForInstallment, interestBroughtForwardDueToGrace);
+        return new PrincipalInterest(null, interestForInstallment, interestBroughtForwardDueToGrace,null);
     }
 
     private boolean isLastRepaymentPeriod(final int numberOfRepayments, final int periodNumber) {
@@ -1144,7 +1144,7 @@ public final class LoanApplicationTerms {
             interestBroughtForwardDueToGrace = interestBroughtForwardDueToGrace.zero();
         }
 
-        return new PrincipalInterest(null, interestForInstallment, interestBroughtForwardDueToGrace);
+        return new PrincipalInterest(null, interestForInstallment, interestBroughtForwardDueToGrace,null);
     }
 
     /*

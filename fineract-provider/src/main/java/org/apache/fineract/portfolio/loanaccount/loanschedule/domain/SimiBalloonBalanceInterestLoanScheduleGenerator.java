@@ -193,7 +193,7 @@ public class SimiBalloonBalanceInterestLoanScheduleGenerator extends AbstractLoa
 //		return new PrincipalInterest(principalForThisInstallment,balanceForInterestCalculation, interestForThisInstallment,
 //			interestBroughtFowardDueToGrace);
 		  PrincipalInterest principalInterest = new PrincipalInterest(principalForThisInstallment, interestForThisInstallment,
-	                interestBroughtFowardDueToGrace);
+	                interestBroughtFowardDueToGrace,null);
 	        principalInterest.setRescheduleInterestPortion(loanApplicationTerms.getInterestTobeApproppriated());
 	        return principalInterest;
     }

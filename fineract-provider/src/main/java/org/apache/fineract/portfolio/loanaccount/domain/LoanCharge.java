@@ -301,6 +301,7 @@ public class LoanCharge extends AbstractPersistableCustom {
             case PERCENT_OF_AMOUNT:
             case PERCENT_OF_AMOUNT_AND_INTEREST:
             case PERCENT_OF_INTEREST:
+            case PERCENT_OF_OUTSTANDING_AMOUNT:
             case PERCENT_OF_DISBURSEMENT_AMOUNT:
                 this.percentage = chargeAmount;
                 this.amountPercentageAppliedTo = amountPercentageAppliedTo;
@@ -413,6 +414,7 @@ public class LoanCharge extends AbstractPersistableCustom {
                 case PERCENT_OF_AMOUNT:
                 case PERCENT_OF_AMOUNT_AND_INTEREST:
                 case PERCENT_OF_INTEREST:
+                case PERCENT_OF_OUTSTANDING_AMOUNT:
                 case PERCENT_OF_DISBURSEMENT_AMOUNT:
                     this.percentage = amount;
                     this.amountPercentageAppliedTo = loanPrincipal;
@@ -421,6 +423,7 @@ public class LoanCharge extends AbstractPersistableCustom {
                     }
                     this.amount = minimumAndMaximumCap(loanCharge);
                 break;
+               
             }
             this.amountOrPercentage = amount;
             this.amountOutstanding = calculateOutstanding();
@@ -504,6 +507,7 @@ public class LoanCharge extends AbstractPersistableCustom {
                 case PERCENT_OF_AMOUNT_AND_INTEREST:
                 case PERCENT_OF_INTEREST:
                 case PERCENT_OF_DISBURSEMENT_AMOUNT:
+                case PERCENT_OF_OUTSTANDING_AMOUNT:
                     this.percentage = newValue;
                     this.amountPercentageAppliedTo = amount;
                     loanCharge = BigDecimal.ZERO;

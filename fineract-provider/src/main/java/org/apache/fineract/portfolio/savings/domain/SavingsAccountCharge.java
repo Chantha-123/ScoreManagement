@@ -305,6 +305,15 @@ public class SavingsAccountCharge extends AbstractPersistableCustom {
                 this.amountWaived = null;
                 this.amountWrittenOff = null;
             break;
+            case PERCENT_OF_OUTSTANDING_AMOUNT:
+                this.percentage = null;
+                this.amount = null;
+                this.amountPercentageAppliedTo = null;
+                this.amountPaid = null;
+                this.amountOutstanding = BigDecimal.ZERO;
+                this.amountWaived = null;
+                this.amountWrittenOff = null;
+            break;
         }
     }
 
@@ -436,6 +445,9 @@ public class SavingsAccountCharge extends AbstractPersistableCustom {
                 case PERCENT_OF_DISBURSEMENT_AMOUNT:
                     LOG.error("TODO Implement update ChargeCalculationType for PERCENT_OF_DISBURSEMENT_AMOUNT");
                 break;
+                case PERCENT_OF_OUTSTANDING_AMOUNT:
+                    LOG.error("TODO Implement update ChargeCalculationType for PERCENT_OF_DISBURSEMENT_AMOUNT");
+                break;
             }
         }
     }
@@ -510,6 +522,9 @@ public class SavingsAccountCharge extends AbstractPersistableCustom {
                 break;
                 case PERCENT_OF_DISBURSEMENT_AMOUNT:
                     LOG.error("TODO Implement update ChargeCalculationType for PERCENT_OF_DISBURSEMENT_AMOUNT");
+                break;
+                case PERCENT_OF_OUTSTANDING_AMOUNT:
+                    LOG.error("TODO Implement update ChargeCalculationType for PERCENT_OF_OUTSTANDING_AMOUNT");
                 break;
             }
         }
