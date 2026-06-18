@@ -975,6 +975,9 @@ public class Loan extends AbstractAuditableWithUTCDateTimeCustom {
             case PERCENT_OF_AMOUNT_AND_INTEREST:
                 percentOf = installment.getPrincipal(getCurrency()).plus(installment.getInterestCharged(getCurrency()));
             break;
+            case PERCENT_OF_OUTSTANDING_AMOUNT:
+                percentOf = installment.getPrincipal(getCurrency()).plus(installment.getFeeChargesCharged(getCurrency()));
+            break;
             case PERCENT_OF_INTEREST:
                 percentOf = installment.getInterestCharged(getCurrency());
             break;
