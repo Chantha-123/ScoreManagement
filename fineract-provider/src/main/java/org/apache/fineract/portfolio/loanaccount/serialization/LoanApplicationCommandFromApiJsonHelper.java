@@ -689,7 +689,7 @@ public final class LoanApplicationCommandFromApiJsonHelper {
         if (this.fromApiJsonHelper.parameterExists(interestTypeParameterName, element)) {
             atLeastOneParameterPassedForUpdate = true;
             interestType = this.fromApiJsonHelper.extractIntegerWithLocaleNamed(interestTypeParameterName, element);
-            baseDataValidator.reset().parameter(interestTypeParameterName).value(interestType).notNull().inMinMaxRange(0, 5);
+            baseDataValidator.reset().parameter(interestTypeParameterName).value(interestType).notNull().inMinMaxRange(0, 6);
         }
 
         if (loanProduct.isLinkedToFloatingInterestRate()) {
