@@ -20,6 +20,7 @@ package org.apache.fineract.portfolio.loanaccount.loanschedule.domain;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.HashSet;
@@ -211,6 +212,9 @@ public final class LoanApplicationTerms {
     private final BigDecimal fixedPrincipalPercentagePerInstallment;
 
     private LocalDate newScheduledDueDateStart;
+    
+    
+    private BigDecimal annulaNorminalChargeRate;
     
     private final Set<Integer> periodNumbersApplicableForPrincipalGracesimi = new HashSet<>();
 
@@ -405,6 +409,39 @@ public final class LoanApplicationTerms {
                 isSkipRepaymentOnFirstDayOfMonth, holidayDetailDTO, allowCompoundingOnEod, isEqualAmortization, false, false, null, false,null);
 
     }
+    
+    
+    
+    public Money pmtForInstallmentAnnuityFee(final PaymentPeriodsInOneYearCalculator calculator, final Money outstandingBalance,
+			final int periodNumber, final MathContext mc) {
+		// Calculate exact period from disbursement date
+		final LocalDate periodStartDate = getExpectedDisbursementDate().withDayOfMonth(1);
+		final LocalDate periodEndDate = getPeriodEndDate(periodStartDate);
+		// equal installments
+		final int periodsElapsed = periodNumber - 1;
+		// with periodic interest for default month and year for
+		// equal installment
+//		Integer installmentNumber = installment;
+		 BigDecimal periodicInterestRateForRepaymentPeriod = periodicInterestRate(calculator, mc,
+					DaysInMonthType.DAYS_30, DaysInYearType.DAYS_360, periodStartDate, periodEndDate, true);
+		
+		 BigDecimal periodicChargeRateForRepaymentPeriod = periodicChargetRate(calculator, mc,
+				DaysInMonthType.ACTUAL, DaysInYearType.DAYS_360, periodStartDate, periodEndDate, true);
+		 
+		 BigDecimal totalPeriodicChargeRateForRepaymentPeriodandperiodicInterestRateForRepaymentPeriod 
+		 = periodicInterestRateForRepaymentPeriod.add(periodicChargeRateForRepaymentPeriod);
+		 
+//		 periodicInterestRateForRepaymentPeriod = periodicInterestRateForRepaymentPeriod.multiply(BigDecimal.valueOf(2));
+		Money totalPmtForThisInstallment = calculateTotalDueForEqualInstallmentRepaymentPeriod(
+				totalPeriodicChargeRateForRepaymentPeriodandperiodicInterestRateForRepaymentPeriod, outstandingBalance, periodsElapsed);
+		
+		
+		BigDecimal totalPmtForThisInstallmentfromMoney = BigDecimal.ZERO;
+		totalPmtForThisInstallmentfromMoney = totalPmtForThisInstallment.getAmount();
+		totalPmtForThisInstallmentfromMoney = totalPmtForThisInstallmentfromMoney.setScale(0, RoundingMode.UP);
+		totalPmtForThisInstallment = Money.of(getCurrency(), totalPmtForThisInstallmentfromMoney);
+		return totalPmtForThisInstallment;
+	}
 
     public static LoanApplicationTerms assembleFrom(final LoanApplicationTerms applicationTerms,
             final List<LoanTermVariationsData> loanTermVariations) {
@@ -642,6 +679,7 @@ public final class LoanApplicationTerms {
             case BALLOON:
             case AMORTIZATION:
             case SEMI_BALOON:
+            case AMORTIZATION_FEE:
             case INVALID:
             break;
         }
@@ -690,6 +728,22 @@ public final class LoanApplicationTerms {
                 break;
             }
         break;
+            case AMORTIZATION_FEE:
+            	switch (this.amortizationMethod) {
+    			case EQUAL_INSTALLMENTS:
+    				Money totalPmtForThisInstallment = pmtForInstallmentAnnuityFee(calculator, outstandingBalance, periodNumber, mc);
+    				
+    				principalForInstallment = calculatePrincipalDueForInstallment(periodNumber, totalPmtForThisInstallment,
+    						interestForThisInstallment);
+    				break;
+    					
+    			case EQUAL_PRINCIPAL:
+    				principalForInstallment = calculateEqualPrincipalDueForInstallment(mc, periodNumber);
+    				break;
+    				
+    			case INVALID:
+    				break;
+    			}
             case BALLOON:
             case INVALID:
             break;
@@ -747,9 +801,9 @@ public final class LoanApplicationTerms {
         Money interestBroughtForwardDueToGrace = cumulatingInterestPaymentDueToGrace.copy();
         InterestMethod interestMethod = this.interestMethod;
 
-        if (this.isEqualAmortization() && this.totalInterestDue != null) {
-            interestMethod = InterestMethod.FLAT;
-        }
+//        if (this.isEqualAmortization() && this.totalInterestDue != null) {
+//            interestMethod = InterestMethod.FLAT;
+//        }
         switch (interestMethod) {
             case FLAT:
                 if (this.isEqualAmortization() && this.totalInterestDue != null && this.interestMethod.isDecliningBalnce()) {
@@ -861,9 +915,30 @@ public final class LoanApplicationTerms {
     				interestBroughtForwardDueToGrace = interestBroughtForwardDueToGrace
     						.plus(interestForThisInstallmentBeforeGracesimi);
     			}
+    		break;
+            case AMORTIZATION_FEE:
+           	 final Money interestForAmorFeeThisInstallmentBeforeGrace = calculateDecliningInterestDueForInstallmentBeforeApplyingGrace(
+                        calculator, mc, outstandingBalance, periodStartDate, periodEndDate);
+
+                final Money interestForAmorFeeThisInstallmentAfterGrace = calculateDecliningInterestDueForInstallmentAfterApplyingGrace(calculator,
+                        interestCalculationGraceOnRepaymentPeriodFraction, mc, outstandingBalance, periodNumber, periodStartDate,
+                        periodEndDate);
+
+                interestForInstallment = interestForAmorFeeThisInstallmentAfterGrace;
+                if (interestForAmorFeeThisInstallmentAfterGrace.isGreaterThanZero()) {
+                    interestForInstallment = interestBroughtForwardDueToGrace.plus(interestForAmorFeeThisInstallmentAfterGrace);
+                    interestBroughtForwardDueToGrace = interestBroughtForwardDueToGrace.zero();
+                } else if (isInterestFreeGracePeriod(periodNumber)) {
+                    interestForInstallment = interestForInstallment.zero();
+                } else if (isInterestFreeGracePeriodFromDate(interestCalculationGraceOnRepaymentPeriodFraction)) {
+                    interestForInstallment = interestForAmorFeeThisInstallmentAfterGrace;
+                } else {
+                    interestBroughtForwardDueToGrace = interestBroughtForwardDueToGrace.plus(interestForAmorFeeThisInstallmentBeforeGrace);
+                }
+           break;
     			
             	
-            break;
+            
         }
 
         return new PrincipalInterest(null, interestForInstallment, interestBroughtForwardDueToGrace,null);
@@ -900,6 +975,8 @@ public final class LoanApplicationTerms {
             case SEMI_BALOON:
             break;
             case AMORTIZATION:
+            break;
+            case AMORTIZATION_FEE:
             break;
         }
 
@@ -1955,7 +2032,207 @@ public final class LoanApplicationTerms {
         this.totalInterestAccounted = totalInterestAccounted;
         this.extraPeriods = this.extraPeriods + extendPeriods;
     }
+    
+    
+//	calculate fee for this installment Annuity
+	public PrincipalInterest calculateTotalFeeForPeriod(final PaymentPeriodsInOneYearCalculator calculator,
+			final double interestCalculationGraceOnRepaymentPeriodFraction, final int periodNumber,
+			final MathContext mc, final Money cumulatingInterestPaymentDueToGrace, final Money outstandingBalance,
+			final LocalDate periodStartDate, final LocalDate periodEndDate) {
 
+		Money interestForInstallment = this.principal.zero();
+		Money interestBroughtForwardDueToGrace = cumulatingInterestPaymentDueToGrace.copy();
+		InterestMethod interestMethod = this.interestMethod;
+
+
+		switch (interestMethod) {
+		case AMORTIZATION_FEE:
+
+			final Money interestForThisInstallmentBeforeGraceAnnuityFee = calculateDecliningFeeDueForInstallmentBeforeApplyingGrace(
+					calculator, mc, outstandingBalance, periodStartDate, periodEndDate);
+
+			final Money interestForThisInstallmentAfterGraceAnnuityFee = calculateDecliningFeeDueForInstallmentAfterApplyingGrace(
+					calculator, interestCalculationGraceOnRepaymentPeriodFraction, mc, outstandingBalance, periodNumber,
+					periodStartDate, periodEndDate);
+
+			interestForInstallment = interestForThisInstallmentAfterGraceAnnuityFee;
+			if (interestForThisInstallmentAfterGraceAnnuityFee.isGreaterThanZero()) {
+				interestForInstallment = interestBroughtForwardDueToGrace.plus(interestForThisInstallmentAfterGraceAnnuityFee);
+				interestBroughtForwardDueToGrace = interestBroughtForwardDueToGrace.zero();
+			} else if (isInterestFreeGracePeriod(periodNumber)) {
+				interestForInstallment = interestForInstallment.zero();
+			} else if (isInterestFreeGracePeriodFromDate(interestCalculationGraceOnRepaymentPeriodFraction)) {
+				interestForInstallment = interestForThisInstallmentAfterGraceAnnuityFee;
+			} else {
+				interestBroughtForwardDueToGrace = interestBroughtForwardDueToGrace
+						.plus(interestForThisInstallmentBeforeGraceAnnuityFee);
+			}
+			break;
+			
+		case 
+	    DECLINING_BALANCE:
+	    break;
+		case FLAT:
+		break;
+		case BALLOON:
+		break;
+		case SEMI_BALOON:
+		break;
+		case AMORTIZATION:
+		break;
+		
+		case INVALID:
+			break;
+		}
+
+		return new PrincipalInterest(null, interestForInstallment, interestBroughtForwardDueToGrace, null);
+	}
+	
+//	end calculate
+	
+	
+	private Money calculateDecliningFeeDueForInstallmentAfterApplyingGrace(
+			final PaymentPeriodsInOneYearCalculator calculator,
+			final double interestCalculationGraceOnRepaymentPeriodFraction, final MathContext mc,
+			final Money outstandingBalance, final int periodNumber, LocalDate periodStartDate,
+			LocalDate periodEndDate) {
+
+		Money interest = calculateDecliningFeeDueForInstallmentBeforeApplyingGrace(calculator, mc,
+				outstandingBalance, periodStartDate, periodEndDate);
+
+		if (isInterestPaymentGraceApplicableForThisPeriod(periodNumber)) {
+			interest = interest.zero();
+		}
+
+		Double fraction = interestCalculationGraceOnRepaymentPeriodFraction;
+
+		if (isInterestFreeGracePeriod(periodNumber)) {
+			interest = interest.zero();
+		} else if (isInterestFreeGracePeriodFromDate(interestCalculationGraceOnRepaymentPeriodFraction)) {
+
+			if (interestCalculationGraceOnRepaymentPeriodFraction >= Integer.valueOf(1).doubleValue()) {
+				interest = interest.zero();
+				fraction = fraction - Integer.valueOf(1).doubleValue();
+
+			} else if (interestCalculationGraceOnRepaymentPeriodFraction > Double.valueOf("0.25")
+					&& interestCalculationGraceOnRepaymentPeriodFraction < Integer.valueOf(1).doubleValue()) {
+
+				final Money graceOnInterestForRepaymentPeriod = interest
+						.multipliedBy(interestCalculationGraceOnRepaymentPeriodFraction);
+				interest = interest.minus(graceOnInterestForRepaymentPeriod);
+				fraction = Double.valueOf("0");
+			}
+		}
+
+		return interest;
+	}
+	
+	
+	
+	private Money calculateDecliningFeeDueForInstallmentBeforeApplyingGrace(
+			final PaymentPeriodsInOneYearCalculator calculator, final MathContext mc, final Money outstandingBalance,
+			LocalDate periodStartDate, LocalDate periodEndDate) {
+
+		Money chargeDue = Money.zero(outstandingBalance.getCurrency());
+
+		final BigDecimal periodicInterestRate = periodicChargetRate(calculator, mc, this.daysInMonthType,
+				this.daysInYearType, periodStartDate, periodEndDate);
+		chargeDue = outstandingBalance.multiplyRetainScale(periodicInterestRate, mc.getRoundingMode());
+
+		return chargeDue;
+	}
+	
+	private BigDecimal periodicChargetRate(final PaymentPeriodsInOneYearCalculator calculator, final MathContext mc,
+			final DaysInMonthType daysInMonthType, final DaysInYearType daysInYearType, LocalDate periodStartDate,
+			LocalDate periodEndDate) {
+		return periodicChargetRate(calculator, mc, daysInMonthType, daysInYearType, periodStartDate, periodEndDate,
+				false);
+	}
+
+	
+	
+	private BigDecimal periodicChargetRate(final PaymentPeriodsInOneYearCalculator calculator, final MathContext mc,
+			final DaysInMonthType daysInMonthType, final DaysInYearType daysInYearType, LocalDate periodStartDate,
+			LocalDate periodEndDate, boolean isForPMT) {
+
+		final long loanTermPeriodsInOneYear = calculatePeriodsInOneYear(calculator);
+
+		final BigDecimal divisor = BigDecimal.valueOf(Double.valueOf("100.0"));
+		final BigDecimal loanTermPeriodsInYearBigDecimal = BigDecimal.valueOf(loanTermPeriodsInOneYear);
+
+		BigDecimal periodicInterestRate = BigDecimal.ZERO;
+		BigDecimal loanTermFrequencyBigDecimal = BigDecimal.ONE;
+		if (isForPMT) {
+			loanTermFrequencyBigDecimal = BigDecimal.valueOf(this.repaymentEvery);
+		} else {
+			loanTermFrequencyBigDecimal = calculateLoanTermFrequency(periodStartDate, periodEndDate);
+		}
+		switch (this.interestCalculationPeriodMethod) {
+		case INVALID:
+			break;
+		case DAILY:
+			// For daily work out number of days in the period
+			BigDecimal numberOfDaysInPeriod = BigDecimal.valueOf(
+				    ChronoUnit.DAYS.between(periodStartDate, periodEndDate)
+				);
+			final BigDecimal oneDayOfYearInterestRate = this.getAnnulaNorminalChargeRate()
+					.divide(loanTermPeriodsInYearBigDecimal, mc).divide(divisor, mc);
+
+			switch (this.repaymentPeriodFrequencyType) {
+			case INVALID:
+				break;
+			case DAYS:
+				periodicInterestRate = oneDayOfYearInterestRate.multiply(numberOfDaysInPeriod, mc);
+				break;
+			case WEEKS:
+				periodicInterestRate = oneDayOfYearInterestRate.multiply(numberOfDaysInPeriod, mc);
+				break;
+			case MONTHS:
+				if (daysInMonthType.isDaysInMonth_30()) {
+					numberOfDaysInPeriod = loanTermFrequencyBigDecimal.multiply(BigDecimal.valueOf(30), mc);
+				}
+				periodicInterestRate = oneDayOfYearInterestRate.multiply(numberOfDaysInPeriod, mc);
+				break;
+			case YEARS:
+				switch (daysInYearType) {
+				case DAYS_360:
+					numberOfDaysInPeriod = loanTermFrequencyBigDecimal.multiply(BigDecimal.valueOf(360), mc);
+					break;
+				case DAYS_364:
+					numberOfDaysInPeriod = loanTermFrequencyBigDecimal.multiply(BigDecimal.valueOf(364), mc);
+					break;
+				case DAYS_365:
+					numberOfDaysInPeriod = loanTermFrequencyBigDecimal.multiply(BigDecimal.valueOf(365), mc);
+					break;
+				default:
+					break;
+				}
+				periodicInterestRate = oneDayOfYearInterestRate.multiply(numberOfDaysInPeriod, mc);
+				break;
+			case WHOLE_TERM:
+				break;
+			}
+			break;
+		case SAME_AS_REPAYMENT_PERIOD:
+			periodicInterestRate = this.getAnnulaNorminalChargeRate().divide(loanTermPeriodsInYearBigDecimal, mc)
+					.divide(divisor, mc).multiply(loanTermFrequencyBigDecimal);
+			break;
+		
+		}
+
+		return periodicInterestRate;
+	}
+	
+//	end Annual Fee Rate
+
+	
+	public BigDecimal getAnnulaNorminalChargeRate() {
+		if(annulaNorminalChargeRate == null)
+		{
+			return BigDecimal.ZERO;
+		}
+		return annulaNorminalChargeRate;
+	}
     public void updateTotalInterestAccounted(Money totalInterestAccounted) {
         this.totalInterestAccounted = totalInterestAccounted;
     }
@@ -2211,5 +2488,7 @@ public final class LoanApplicationTerms {
 	public void setPrincipalCompoundingDisabledForOverdueLoans(boolean isPrincipalCompoundingDisabledForOverdueLoans) {
 		this.isPrincipalCompoundingDisabledForOverdueLoans = isPrincipalCompoundingDisabledForOverdueLoans;
 	}
-    
+	public void setAnnulaNorminalChargeRate(BigDecimal annulaNorminalChargeRate) {
+		this.annulaNorminalChargeRate = annulaNorminalChargeRate;
+	}
 }

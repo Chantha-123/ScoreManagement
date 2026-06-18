@@ -21,7 +21,8 @@ package org.apache.fineract.portfolio.loanproduct.domain;
 public enum InterestMethod {
 
     DECLINING_BALANCE(0, "interestType.declining.balance"), FLAT(1, "interestType.flat"), INVALID(2, "interestType.invalid"),
-    BALLOON(3, "interestType.Balloon"),SEMI_BALOON(4,"interestType.SemiBalloon"),AMORTIZATION(5,"interestType.Amortization");
+    BALLOON(3, "interestType.Balloon"),SEMI_BALOON(4,"interestType.SemiBalloon"),AMORTIZATION(5,"interestType.Amortization"),
+    AMORTIZATION_FEE(6,"interestType.Amortization.Fee");
 
     private final Integer value;
     private final String code;
@@ -61,6 +62,9 @@ public enum InterestMethod {
             case 5:
             	repaymentMethod = InterestMethod.AMORTIZATION;
             break;
+            case 6:
+            	repaymentMethod = InterestMethod.AMORTIZATION_FEE;
+            break;
             default:
                 repaymentMethod = InterestMethod.INVALID;
             break;
@@ -70,5 +74,8 @@ public enum InterestMethod {
 
     public boolean isDecliningBalnce() {
         return this.value.equals(InterestMethod.DECLINING_BALANCE.getValue());
+    }
+    public boolean isAnunityFee() {
+        return this.value.equals(InterestMethod.AMORTIZATION_FEE.getValue());
     }
 }

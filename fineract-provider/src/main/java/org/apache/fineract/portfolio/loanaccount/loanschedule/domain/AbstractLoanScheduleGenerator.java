@@ -1268,21 +1268,77 @@ public abstract class AbstractLoanScheduleGenerator implements LoanScheduleGener
         return principalToBeScheduled;
     }
 
-    private boolean updateFixedInstallmentAmount(final MathContext mc, final LoanApplicationTerms loanApplicationTerms, int periodNumber,
-            Money outstandingBalance) {
-        boolean isAmountChanged = false;
-        if (loanApplicationTerms.getActualFixedEmiAmount() == null && loanApplicationTerms.getInterestMethod().isDecliningBalnce()
-                && loanApplicationTerms.getAmortizationMethod().isEqualInstallment()) {
-            if (periodNumber < loanApplicationTerms.getPrincipalGrace() + 1) {
-                periodNumber = loanApplicationTerms.getPrincipalGrace() + 1;
-            }
-            Money emiAmount = loanApplicationTerms.pmtForInstallment(this.paymentPeriodsInOneYearCalculator, outstandingBalance,
-                    periodNumber, mc);
-            loanApplicationTerms.setFixedEmiAmount(emiAmount.getAmount());
-            isAmountChanged = true;
-        }
-        return isAmountChanged;
-    }
+//    private boolean updateFixedInstallmentAmount(final MathContext mc, final LoanApplicationTerms loanApplicationTerms, int periodNumber,
+//            Money outstandingBalance) {
+//        boolean isAmountChanged = false;
+//        if (loanApplicationTerms.getActualFixedEmiAmount() == null && loanApplicationTerms.getInterestMethod().isDecliningBalnce()
+//                && loanApplicationTerms.getAmortizationMethod().isEqualInstallment()) {
+//            if (periodNumber < loanApplicationTerms.getPrincipalGrace() + 1) {
+//                periodNumber = loanApplicationTerms.getPrincipalGrace() + 1;
+//            }
+//            
+//            if(loanApplicationTerms.getActualFixedEmiAmount() == null && loanApplicationTerms.getInterestMethod().isAnunityFee() && loanApplicationTerms.getAmortizationMethod().isEqualInstallment())
+//			{
+//				Money emiAmount = loanApplicationTerms.pmtForInstallmentAnnuityFee(
+//				        this.paymentPeriodsInOneYearCalculator, 
+//				        outstandingBalance, 
+//				        periodNumber, 
+//				        mc);
+//				
+//				 loanApplicationTerms.setFixedEmiAmount(emiAmount.getAmount());
+//			
+//				isAmountChanged = true;
+//			}else {
+//				  Money emiAmount = loanApplicationTerms.pmtForInstallment(this.paymentPeriodsInOneYearCalculator, outstandingBalance,
+//		                    periodNumber, mc);
+//				  loanApplicationTerms.setFixedEmiAmount(emiAmount.getAmount());
+//			}
+//          
+//           
+//            isAmountChanged = true;
+//        }
+//        return isAmountChanged;
+//    }
+    
+    
+    
+    private boolean updateFixedInstallmentAmount(
+	        final MathContext mc, 
+	        final LoanApplicationTerms loanApplicationTerms, 
+	        int periodNumber, 
+	        Money outstandingBalance
+	        ) {
+		boolean isAmountChanged = false;
+		if (loanApplicationTerms.getActualFixedEmiAmount() == null
+		        && loanApplicationTerms.getAmortizationMethod().isEqualInstallment()
+		        && (loanApplicationTerms.getInterestMethod().isDecliningBalnce()
+		                || loanApplicationTerms.getInterestMethod().isAnunityFee())) {
+
+		    if (periodNumber < loanApplicationTerms.getPrincipalGrace() + 1) {
+		        periodNumber = loanApplicationTerms.getPrincipalGrace() + 1;
+		    }
+
+		    Money emiAmount;
+
+		    if (loanApplicationTerms.getInterestMethod().isAnunityFee()) {
+		        emiAmount = loanApplicationTerms.pmtForInstallmentAnnuityFee(
+		                this.paymentPeriodsInOneYearCalculator,
+		                outstandingBalance,
+		                periodNumber,
+		                mc);
+		    } else {
+		        emiAmount = loanApplicationTerms.pmtForInstallment(
+		                this.paymentPeriodsInOneYearCalculator,
+		                outstandingBalance,
+		                periodNumber,
+		                mc);
+		    }
+
+		    loanApplicationTerms.setFixedEmiAmount(emiAmount.getAmount());
+		    isAmountChanged = true;
+		}
+		return isAmountChanged;
+	}
 
     private Money fetchArrears(final LoanApplicationTerms loanApplicationTerms, final MonetaryCurrency currency,
             final LoanTransaction transaction) {
@@ -2055,7 +2111,7 @@ public abstract class AbstractLoanScheduleGenerator implements LoanScheduleGener
 			} else if (loanCharge.getChargeCalculation().isPercentageOfInterest()) {
 				amount = amount.add(principalInterestForThisPeriod.interest().getAmount());
 			}
-			else if (loanCharge.getChargeCalculation().isPercentageOfAmount()) {
+			else if (loanCharge.getChargeCalculation().isPercentageOfOutstandingAmount()) {
 				amount = amount.add(principalInterestForThisPeriod.getOutstanding().getAmount()).add(principalInterestForThisPeriod.principal().getAmount());
 
 			} else {
@@ -2067,7 +2123,7 @@ public abstract class AbstractLoanScheduleGenerator implements LoanScheduleGener
 			loanTermInDay = BigDecimal.valueOf(Double.valueOf(loanTermInDays));
 
 			BigDecimal loanChargeAmt = amount.multiply(loanCharge.getPercentage()).divide(BigDecimal.valueOf(100));
-			if (loanCharge.getChargeCalculation().isPercentageOfOutstanding()) {			    
+			if (loanCharge.getChargeCalculation().isPercentageOfOutstandingAmount()) {			    
 			    
 				loanChargeAmt = amount.multiply(loanCharge.getPercentage()).multiply(loanTermInDay).divide(BigDecimal.valueOf(36000), 2, RoundingMode.HALF_UP); //arount here
 				loanChargeAmt = loanChargeAmt.setScale(monetaryCurrency.getDigitsAfterDecimal(),RoundingMode.HALF_EVEN);

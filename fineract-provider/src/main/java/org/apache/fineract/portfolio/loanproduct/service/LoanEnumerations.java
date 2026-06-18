@@ -310,6 +310,10 @@ public final class LoanEnumerations {
                 optionData = new EnumOptionData(InterestMethod.AMORTIZATION.getValue().longValue(),
                         InterestMethod.AMORTIZATION.getCode(), "Amortizaion");
             break;
+            case AMORTIZATION_FEE:
+                optionData = new EnumOptionData(InterestMethod.AMORTIZATION_FEE.getValue().longValue(),
+                        InterestMethod.AMORTIZATION_FEE.getCode(), "Amortizaion Fee");
+            break;
             default:
                 optionData = new EnumOptionData(InterestMethod.INVALID.getValue().longValue(), InterestMethod.INVALID.getCode(), "Invalid");
             break;

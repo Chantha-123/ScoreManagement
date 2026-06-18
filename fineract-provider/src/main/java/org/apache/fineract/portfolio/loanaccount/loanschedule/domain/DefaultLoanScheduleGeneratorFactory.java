@@ -46,6 +46,9 @@ public class DefaultLoanScheduleGeneratorFactory implements LoanScheduleGenerato
                 // treat these interest methods as declining balance for schedule generation
                 loanScheduleGenerator = new DecliningBalanceInterestLoanScheduleGenerator();
                 break;
+            case AMORTIZATION_FEE:
+            	 loanScheduleGenerator = new DecliningBalanceInterestLoanScheduleGenerator();
+            	break;
             case INVALID:
                 break;
             // default:

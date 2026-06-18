@@ -249,7 +249,7 @@ public final class LoanApplicationCommandFromApiJsonHelper {
                 repaymentFrequencyDayOfWeekTypeParameterName, element, this.fromApiJsonHelper);
         final String interestTypeParameterName = "interestType";
         final Integer interestType = this.fromApiJsonHelper.extractIntegerSansLocaleNamed(interestTypeParameterName, element);
-        baseDataValidator.reset().parameter(interestTypeParameterName).value(interestType).notNull().inMinMaxRange(0, 5);
+        baseDataValidator.reset().parameter(interestTypeParameterName).value(interestType).notNull().inMinMaxRange(0, 6);
 
         final String interestCalculationPeriodTypeParameterName = "interestCalculationPeriodType";
         final Integer interestCalculationPeriodType = this.fromApiJsonHelper

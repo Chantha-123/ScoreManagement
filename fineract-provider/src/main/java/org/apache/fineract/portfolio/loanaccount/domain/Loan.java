@@ -2794,7 +2794,33 @@ public class Loan extends AbstractAuditableWithUTCDateTimeCustom {
 
             }
             loanScheduleGenerator = scheduleGeneratorDTO.getLoanScheduleFactory().create(loanApplicationTerms.getInterestMethod());
-        } else {
+        } 
+    	if(loanApplicationTerms.getInterestMethod().isAnunityFee())
+		{
+			final LoanScheduleGenerator decliningLoanScheduleGenerator = scheduleGeneratorDTO
+					.getLoanScheduleFactory()
+					.create(InterestMethod.DECLINING_BALANCE);
+				Set<LoanCharge> loanCharges = charges();
+				BigDecimal chargePercent = BigDecimal.ZERO;
+				for(LoanCharge charge: loanCharges)
+				{
+					if(charge.getChargeCalculation().isPercentageOfOutstandingAmount() && charge.isInstalmentFee()
+							&& !charge.isPenaltyCharge())
+					{
+						chargePercent = charge.getPercentage();
+						loanApplicationTerms.setAnnulaNorminalChargeRate(chargePercent);
+					}
+					
+				}
+				
+				LoanScheduleModel loanSchedule = decliningLoanScheduleGenerator.generate(mc, loanApplicationTerms,
+					loanCharges,
+					scheduleGeneratorDTO.getHolidayDetailDTO());
+
+				loanApplicationTerms.updateTotalInterestDue(Money.of(loanApplicationTerms.getCurrency(), loanSchedule.getTotalInterestCharged()));
+		}
+        
+        else {
             loanScheduleGenerator = scheduleGeneratorDTO.getLoanScheduleFactory().create(loanApplicationTerms.getInterestMethod());
         }
 

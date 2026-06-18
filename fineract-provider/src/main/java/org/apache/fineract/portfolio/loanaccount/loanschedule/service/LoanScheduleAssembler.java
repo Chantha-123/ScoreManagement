@@ -610,6 +610,28 @@ public class LoanScheduleAssembler {
         // This method is getting called from calculate loan schedule.
         final LoanApplicationTerms loanApplicationTerms = assembleLoanTerms(element);
         // Get holiday details
+    	final Integer interestType = this.fromApiJsonHelper.extractIntegerWithLocaleNamed("interestType", element);
+        final InterestMethod interestMethod = InterestMethod.fromInt(interestType);
+        if(interestMethod.isAnunityFee())
+		{
+			List<LoanDisbursementDetails> disbursementDetails = null;
+			final Set<LoanCharge> loanCharges = this.loanChargeAssembler.fromParsedJson(element, disbursementDetails);
+			
+			BigDecimal chargeRate = BigDecimal.ZERO;
+			
+			for (final LoanCharge loanCharge : loanCharges)
+			{
+				if(loanCharge.getChargeCalculation().isPercentageOfOutstandingAmount() && loanCharge.isInstalmentFee()
+						&& !loanCharge.isPenaltyCharge())
+				{
+					chargeRate = loanCharge.getPercentage();
+				}
+			}
+			loanApplicationTerms.setAnnulaNorminalChargeRate(chargeRate);
+		
+		
+		}
+        
         final boolean isHolidayEnabled = this.configurationDomainService.isRescheduleRepaymentsOnHolidaysEnabled();
 
         final Long clientId = this.fromApiJsonHelper.extractLongNamed("clientId", element);
@@ -642,31 +664,34 @@ public class LoanScheduleAssembler {
     public LoanScheduleModel assembleLoanScheduleFrom(final LoanApplicationTerms loanApplicationTerms, final boolean isHolidayEnabled,
             final List<Holiday> holidays, final WorkingDays workingDays, final JsonElement element,
             List<LoanDisbursementDetails> disbursementDetails) {
+    	final Set<LoanCharge> loanCharges = this.loanChargeAssembler.fromParsedJson(element, disbursementDetails);
 
-        final Set<LoanCharge> loanCharges = this.loanChargeAssembler.fromParsedJson(element, disbursementDetails);
+		final RoundingMode roundingMode = MoneyHelper.getRoundingMode();
+		final MathContext mc = new MathContext(8, roundingMode);
+		HolidayDetailDTO detailDTO = new HolidayDetailDTO(isHolidayEnabled, holidays, workingDays);
 
-        final RoundingMode roundingMode = MoneyHelper.getRoundingMode();
-        final MathContext mc = new MathContext(8, roundingMode);
-        HolidayDetailDTO detailDTO = new HolidayDetailDTO(isHolidayEnabled, holidays, workingDays);
+		LoanScheduleGenerator loanScheduleGenerator = this.loanScheduleFactory.create(loanApplicationTerms.getInterestMethod());
+		
+		if (loanApplicationTerms.isEqualAmortization())
+		{
+			if (loanApplicationTerms.getInterestMethod().isDecliningBalnce() || loanApplicationTerms.getInterestMethod().isAnunityFee())
+			{
+				final LoanScheduleGenerator decliningLoanScheduleGenerator = this.loanScheduleFactory.create(InterestMethod.DECLINING_BALANCE);
+				
+				LoanScheduleModel loanSchedule = decliningLoanScheduleGenerator.generate(mc, loanApplicationTerms, loanCharges, detailDTO);
 
-        LoanScheduleGenerator loanScheduleGenerator = this.loanScheduleFactory.create(loanApplicationTerms.getInterestMethod());
-        if (loanApplicationTerms.isEqualAmortization()) {
-            if (loanApplicationTerms.getInterestMethod().isDecliningBalnce()) {
-                final LoanScheduleGenerator decliningLoanScheduleGenerator = this.loanScheduleFactory
-                        .create(InterestMethod.DECLINING_BALANCE);
-                LoanScheduleModel loanSchedule = decliningLoanScheduleGenerator.generate(mc, loanApplicationTerms, loanCharges, detailDTO);
+				loanApplicationTerms.updateTotalInterestDue( Money.of(loanApplicationTerms.getCurrency(), loanSchedule.getTotalInterestCharged()));
+				
+			}
+			else {
+				loanScheduleGenerator = this.loanScheduleFactory.create(loanApplicationTerms.getInterestMethod());
+			}
+		} else
+		{
+			loanScheduleGenerator = this.loanScheduleFactory.create(loanApplicationTerms.getInterestMethod());
+		}
 
-                loanApplicationTerms
-                        .updateTotalInterestDue(Money.of(loanApplicationTerms.getCurrency(), loanSchedule.getTotalInterestCharged()));
-
-            }
-//            loanScheduleGenerator = this.loanScheduleFactory.create(InterestMethod.FLAT);
-            loanScheduleGenerator = this.loanScheduleFactory.create(loanApplicationTerms.getInterestMethod());
-        } else {
-            loanScheduleGenerator = this.loanScheduleFactory.create(loanApplicationTerms.getInterestMethod());
-        }
-
-        return loanScheduleGenerator.generate(mc, loanApplicationTerms, loanCharges, detailDTO);
+		return loanScheduleGenerator.generate(mc, loanApplicationTerms, loanCharges, detailDTO);
     }
 
     public LoanScheduleModel assembleForInterestRecalculation(final LoanApplicationTerms loanApplicationTerms, final Long officeId,

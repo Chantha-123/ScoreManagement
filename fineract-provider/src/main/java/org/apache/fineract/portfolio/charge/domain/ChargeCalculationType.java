@@ -96,9 +96,6 @@ public enum ChargeCalculationType {
     }
 
    
-    public boolean   isPercentageOfOutstanding(){
-        return this.value.equals(ChargeCalculationType.PERCENT_OF_OUTSTANDING_AMOUNT.getValue());
-    }
     
     public boolean isPercentageOfAmount() {
         return this.value.equals(ChargeCalculationType.PERCENT_OF_AMOUNT.getValue());
@@ -126,10 +123,15 @@ public enum ChargeCalculationType {
 
     public boolean isPercentageBased() {
         return isPercentageOfAmount() || isPercentageOfAmountAndInterest() || isPercentageOfInterest()
-                || isPercentageOfDisbursementAmount();
+                || isPercentageOfDisbursementAmount() || isPercentageOfOutstandingAmount() ;
     }
 
     public boolean isPercentageOfDisbursementAmount() {
         return this.value.equals(ChargeCalculationType.PERCENT_OF_DISBURSEMENT_AMOUNT.getValue());
     }
+    
+    public boolean isPercentageOfOutstandingAmount(){
+        return this.value.equals(ChargeCalculationType.PERCENT_OF_OUTSTANDING_AMOUNT.getValue());
+    }
+    
 }
