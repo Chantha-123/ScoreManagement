@@ -3484,5 +3484,20 @@ public class CommandWrapperBuilder {
         this.href = "/businessdate";
         return this;
     }
+    
+    public CommandWrapperBuilder createDailySpotRate() {
+        this.actionName = "CREATE";
+        this.entityName = "DAILYSPOTRATE";
+        this.href = "/dailyspotrates";
+        return this;
+    }
+ 
+    public CommandWrapperBuilder updateDailySpotRate(final Long dailySpotRateId) {
+        this.actionName = "UPDATE";
+        this.entityName = "DAILYSPOTRATE";
+        this.entityId = dailySpotRateId;
+        this.href = "/dailyspotrates/" + dailySpotRateId;
+        return this;
+    }
 
 }
