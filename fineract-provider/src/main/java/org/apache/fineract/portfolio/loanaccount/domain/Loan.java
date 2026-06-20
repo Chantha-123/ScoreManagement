@@ -976,7 +976,7 @@ public class Loan extends AbstractAuditableWithUTCDateTimeCustom {
                 percentOf = installment.getPrincipal(getCurrency()).plus(installment.getInterestCharged(getCurrency()));
             break;
             case PERCENT_OF_OUTSTANDING_AMOUNT:
-                percentOf = installment.getPrincipal(getCurrency()).plus(installment.getFeeChargesCharged(getCurrency()));
+                percentOf = installment.getFeeChargesCharged(getCurrency());
             break;
             case PERCENT_OF_INTEREST:
                 percentOf = installment.getInterestCharged(getCurrency());
@@ -984,7 +984,14 @@ public class Loan extends AbstractAuditableWithUTCDateTimeCustom {
             default:
             break;
         }
-        amount = amount.plus(LoanCharge.percentageOf(percentOf.getAmount(), percentage));
+        if(calculationType.isPercentageOfOutstandingAmount())
+        {
+        	amount = percentOf;
+        }
+        else {
+        	 amount = amount.plus(LoanCharge.percentageOf(percentOf.getAmount(), percentage));
+        }
+       
         return amount;
     }
 
@@ -1775,6 +1782,9 @@ public class Loan extends AbstractAuditableWithUTCDateTimeCustom {
             break;
             case PERCENT_OF_AMOUNT_AND_INTEREST:
                 amount = installment.getPrincipalOutstanding(getCurrency()).plus(installment.getInterestOutstanding(getCurrency()));
+            break;
+            case PERCENT_OF_OUTSTANDING_AMOUNT:
+                amount = installment.getFeeChargesOutstanding(getCurrency());
             break;
             case PERCENT_OF_INTEREST:
                 amount = installment.getInterestOutstanding(getCurrency());
