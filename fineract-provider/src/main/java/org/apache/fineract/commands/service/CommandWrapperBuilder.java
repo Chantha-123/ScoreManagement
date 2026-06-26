@@ -3500,4 +3500,64 @@ public class CommandWrapperBuilder {
         return this;
     }
 
+    public CommandWrapperBuilder createProvince() {
+        this.actionName = "CREATE";
+        this.entityName = "PROVINCE";
+        this.href = "/provinces";
+        return this;
+    }
+
+    public CommandWrapperBuilder updateProvince(final Long provinceId) {
+        this.actionName = "UPDATE";
+        this.entityName = "PROVINCE";
+        this.entityId = provinceId;
+        this.href = "/provinces/" + provinceId;
+        return this;
+    }
+
+    public CommandWrapperBuilder createDistrict() {
+        this.actionName = "CREATE";
+        this.entityName = "DISTRICT";
+        this.href = "/districts";
+        return this;
+    }
+
+    public CommandWrapperBuilder updateDistrict(final Long districtId) {
+        this.actionName = "UPDATE";
+        this.entityName = "DISTRICT";
+        this.entityId = districtId;
+        this.href = "/districts/" + districtId;
+        return this;
+    }
+
+    public CommandWrapperBuilder createCommune() {
+        this.actionName = "CREATE";
+        this.entityName = "COMMUNE";
+        this.href = "/communes";
+        return this;
+    }
+
+    public CommandWrapperBuilder updateCommune(final Long communeId) {
+        this.actionName = "UPDATE";
+        this.entityName = "COMMUNE";
+        this.entityId = communeId;
+        this.href = "/communes/" + communeId;
+        return this;
+    }
+
+    public CommandWrapperBuilder createVillage() {
+        this.actionName = "CREATE";
+        this.entityName = "VILLAGE";
+        this.href = "/villages";
+        return this;
+    }
+
+    public CommandWrapperBuilder updateVillage(final Long villageId) {
+        this.actionName = "UPDATE";
+        this.entityName = "VILLAGE";
+        this.entityId = villageId;
+        this.href = "/villages/" + villageId;
+        return this;
+    }
+
 }

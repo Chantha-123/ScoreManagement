@@ -25,3 +25,4 @@ licenses
 **/.asciidoctor/images/*
 **/.asciidoctor/diagram/*
 **/images/diag-*.svg
+CLAUDE.md

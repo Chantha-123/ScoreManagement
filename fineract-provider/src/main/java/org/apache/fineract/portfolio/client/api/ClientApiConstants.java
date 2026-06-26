@@ -115,6 +115,8 @@ public class ClientApiConstants {
     public static final String clientClassificationParamName = "clientClassification";
     public static final String legalFormIdParamName = "legalFormId";
     public static final String legalFormParamName = "legalForm";
+    public static final String villageIdParamName = "villageId";
+    public static final String birthVillageIdParamName = "birthVillageId";
     // request parameters for payment details
     public static final String paymentTypeIdParamName = "paymentTypeId";
     public static final String transactionAccountNumberParamName = "accountNumber";

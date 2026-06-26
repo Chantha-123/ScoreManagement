@@ -52,6 +52,8 @@ import org.apache.fineract.organisation.office.domain.Office;
 import org.apache.fineract.organisation.office.domain.OfficeRepositoryWrapper;
 import org.apache.fineract.organisation.staff.domain.Staff;
 import org.apache.fineract.organisation.staff.domain.StaffRepositoryWrapper;
+import org.apache.fineract.organisation.village.domain.Village;
+import org.apache.fineract.organisation.village.domain.VillageRepositoryWrapper;
 import org.apache.fineract.portfolio.address.service.AddressWritePlatformService;
 import org.apache.fineract.portfolio.businessevent.domain.client.ClientActivateBusinessEvent;
 import org.apache.fineract.portfolio.businessevent.domain.client.ClientCreateBusinessEvent;
@@ -119,6 +121,7 @@ public class ClientWritePlatformServiceJpaRepositoryImpl implements ClientWriteP
     private final ClientFamilyMembersWritePlatformService clientFamilyMembersWritePlatformService;
     private final BusinessEventNotifierService businessEventNotifierService;
     private final EntityDatatableChecksWritePlatformService entityDatatableChecksWritePlatformService;
+    private final VillageRepositoryWrapper villageRepositoryWrapper;
 
     @Autowired
     public ClientWritePlatformServiceJpaRepositoryImpl(final PlatformSecurityContext context,
@@ -135,7 +138,8 @@ public class ClientWritePlatformServiceJpaRepositoryImpl implements ClientWriteP
             final AddressWritePlatformService addressWritePlatformService,
             final ClientFamilyMembersWritePlatformService clientFamilyMembersWritePlatformService,
             final BusinessEventNotifierService businessEventNotifierService,
-            final EntityDatatableChecksWritePlatformService entityDatatableChecksWritePlatformService) {
+            final EntityDatatableChecksWritePlatformService entityDatatableChecksWritePlatformService,
+            final VillageRepositoryWrapper villageRepositoryWrapper) {
         this.context = context;
         this.clientRepository = clientRepository;
         this.clientNonPersonRepository = clientNonPersonRepository;
@@ -159,6 +163,7 @@ public class ClientWritePlatformServiceJpaRepositoryImpl implements ClientWriteP
         this.clientFamilyMembersWritePlatformService = clientFamilyMembersWritePlatformService;
         this.businessEventNotifierService = businessEventNotifierService;
         this.entityDatatableChecksWritePlatformService = entityDatatableChecksWritePlatformService;
+        this.villageRepositoryWrapper = villageRepositoryWrapper;
     }
 
     @Transactional
@@ -288,8 +293,20 @@ public class ClientWritePlatformServiceJpaRepositoryImpl implements ClientWriteP
                 }
             }
 
+            Village village = null;
+            final Long villageId = command.longValueOfParameterNamed(ClientApiConstants.villageIdParamName);
+            if (villageId != null) {
+                village = this.villageRepositoryWrapper.findOneWithNotFoundDetection(villageId);
+            }
+
+            Village birthVillage = null;
+            final Long birthVillageId = command.longValueOfParameterNamed(ClientApiConstants.birthVillageIdParamName);
+            if (birthVillageId != null) {
+                birthVillage = this.villageRepositoryWrapper.findOneWithNotFoundDetection(birthVillageId);
+            }
+
             final Client newClient = Client.createNew(currentUser, clientOffice, clientParentGroup, staff, savingsProductId, gender,
-                    clientType, clientClassification, legalFormValue, command);
+                    clientType, clientClassification, legalFormValue, village, birthVillage, command);
             this.clientRepository.saveAndFlush(newClient);
             boolean rollbackTransaction = false;
             if (newClient.isActive()) {
@@ -480,6 +497,17 @@ public class ClientWritePlatformServiceJpaRepositoryImpl implements ClientWriteP
                             .findOneByCodeNameAndIdWithNotFoundDetection(ClientApiConstants.CLIENT_CLASSIFICATION, newValue);
                 }
                 clientForUpdate.updateClientClassification(newCodeVal);
+            }
+
+            if (changes.containsKey(ClientApiConstants.villageIdParamName)) {
+                final Long newValue = command.longValueOfParameterNamed(ClientApiConstants.villageIdParamName);
+                clientForUpdate.updateVillage(newValue != null ? this.villageRepositoryWrapper.findOneWithNotFoundDetection(newValue) : null);
+            }
+
+            if (changes.containsKey(ClientApiConstants.birthVillageIdParamName)) {
+                final Long newValue = command.longValueOfParameterNamed(ClientApiConstants.birthVillageIdParamName);
+                clientForUpdate.updateBirthVillage(
+                        newValue != null ? this.villageRepositoryWrapper.findOneWithNotFoundDetection(newValue) : null);
             }
 
             if (!changes.isEmpty()) {

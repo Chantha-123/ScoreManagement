@@ -41,4 +41,10 @@
     <include file="parts/0019_refactor_loan_transaction.xml" relativeToChangelogFile="true"/>
     <include file="parts/0020_add_audit_entries.xml" relativeToChangelogFile="true"/>
     <include file="parts/0026_reversals_for_reversed_transactions.xml" relativeToChangelogFile="true"/>
+    <include file="parts/0027_geography_tables.xml" relativeToChangelogFile="true"/>
+    <include file="parts/0028_client_village_fields.xml" relativeToChangelogFile="true"/>
+    <include file="parts/0029_acc_daily_spot_rate.xml" relativeToChangelogFile="true"/>
+    <include file="parts/0030_gender_code_values.xml" relativeToChangelogFile="true"/>
+    <include file="parts/0031_relationship_code_values.xml" relativeToChangelogFile="true"/>
+    <include file="parts/0032_marital_status_code_values.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>

@@ -540,7 +540,7 @@ public class ClientReadPlatformServiceImpl implements ClientReadPlatformService 
             return ClientData.instance(accountNo, status, subStatus, officeId, officeName, transferToOfficeId, transferToOfficeName, id,
                     firstname, middlename, lastname, fullname, displayName, externalId, mobileNo, emailAddress, dateOfBirth, gender,
                     activationDate, imageId, staffId, staffName, timeline, savingsProductId, savingsProductName, savingsAccountId,
-                    clienttype, classification, legalForm, clientNonPerson, isStaff);
+                    clienttype, classification, legalForm, clientNonPerson, isStaff, null, null, null, null);
 
         }
     }
@@ -611,7 +611,9 @@ public class ClientReadPlatformServiceImpl implements ClientReadPlatformService 
             builder.append("c.activation_date as activationDate, c.image_id as imageId, ");
             builder.append("c.staff_id as staffId, s.display_name as staffName, ");
             builder.append("c.default_savings_product as savingsProductId, sp.name as savingsProductName, ");
-            builder.append("c.default_savings_account as savingsAccountId ");
+            builder.append("c.default_savings_account as savingsAccountId, ");
+            builder.append("v.id as villageId, v.name_eng as villageNameEng, ");
+            builder.append("bv.id as birthVillageId, bv.name_eng as birthVillageNameEng ");
             builder.append("from m_client c ");
             builder.append("join m_office o on o.id = c.office_id ");
             builder.append("left join m_client_non_person cnp on cnp.client_id = c.id ");
@@ -627,6 +629,8 @@ public class ClientReadPlatformServiceImpl implements ClientReadPlatformService 
             builder.append("left join m_code_value cvSubStatus on cvSubStatus.id = c.sub_status ");
             builder.append("left join m_code_value cvConstitution on cvConstitution.id = cnp.constitution_cv_id ");
             builder.append("left join m_code_value cvMainBusinessLine on cvMainBusinessLine.id = cnp.main_business_line_cv_id ");
+            builder.append("left join m_village v on v.id = c.village_id ");
+            builder.append("left join m_village bv on bv.id = c.birth_village_id ");
 
             this.schema = builder.toString();
         }
@@ -687,6 +691,11 @@ public class ClientReadPlatformServiceImpl implements ClientReadPlatformService 
             final String savingsProductName = rs.getString("savingsProductName");
             final Long savingsAccountId = JdbcSupport.getLong(rs, "savingsAccountId");
 
+            final Long villageId = JdbcSupport.getLong(rs, "villageId");
+            final String villageNameEng = rs.getString("villageNameEng");
+            final Long birthVillageId = JdbcSupport.getLong(rs, "birthVillageId");
+            final String birthVillageNameEng = rs.getString("birthVillageNameEng");
+
             final LocalDate closedOnDate = JdbcSupport.getLocalDate(rs, "closedOnDate");
             final String closedByUsername = rs.getString("closedByUsername");
             final String closedByFirstname = rs.getString("closedByFirstname");
@@ -727,7 +736,8 @@ public class ClientReadPlatformServiceImpl implements ClientReadPlatformService 
             return ClientData.instance(accountNo, status, subStatus, officeId, officeName, transferToOfficeId, transferToOfficeName, id,
                     firstname, middlename, lastname, fullname, displayName, externalId, mobileNo, emailAddress, dateOfBirth, gender,
                     activationDate, imageId, staffId, staffName, timeline, savingsProductId, savingsProductName, savingsAccountId,
-                    clienttype, classification, legalForm, clientNonPerson, isStaff);
+                    clienttype, classification, legalForm, clientNonPerson, isStaff, villageId, villageNameEng, birthVillageId,
+                    birthVillageNameEng);
 
         }
     }

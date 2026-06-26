@@ -224,6 +224,17 @@ public final class ClientDataValidator {
             baseDataValidator.reset().parameter("isStaff").value(isStaffFlag).notNull();
         }
 
+        if (this.fromApiJsonHelper.parameterExists(ClientApiConstants.villageIdParamName, element)) {
+            final Long villageId = this.fromApiJsonHelper.extractLongNamed(ClientApiConstants.villageIdParamName, element);
+            baseDataValidator.reset().parameter(ClientApiConstants.villageIdParamName).value(villageId).ignoreIfNull().longGreaterThanZero();
+        }
+
+        if (this.fromApiJsonHelper.parameterExists(ClientApiConstants.birthVillageIdParamName, element)) {
+            final Long birthVillageId = this.fromApiJsonHelper.extractLongNamed(ClientApiConstants.birthVillageIdParamName, element);
+            baseDataValidator.reset().parameter(ClientApiConstants.birthVillageIdParamName).value(birthVillageId).ignoreIfNull()
+                    .longGreaterThanZero();
+        }
+
         if (this.configurationReadPlatformService.retrieveGlobalConfiguration("Enable-Address").isEnabled()) {
             final JsonArray address = this.fromApiJsonHelper.extractJsonArrayNamed(ClientApiConstants.address, element);
             baseDataValidator.reset().parameter(ClientApiConstants.address).value(address).notNull().jsonArrayNotEmpty();
@@ -510,6 +521,19 @@ public final class ClientDataValidator {
         if (this.fromApiJsonHelper.parameterExists("isStaff", element)) {
             final Boolean isStaffFlag = this.fromApiJsonHelper.extractBooleanNamed("isStaff", element);
             baseDataValidator.reset().parameter("isStaff").value(isStaffFlag).notNull();
+        }
+
+        if (this.fromApiJsonHelper.parameterExists(ClientApiConstants.villageIdParamName, element)) {
+            atLeastOneParameterPassedForUpdate = true;
+            final Long villageId = this.fromApiJsonHelper.extractLongNamed(ClientApiConstants.villageIdParamName, element);
+            baseDataValidator.reset().parameter(ClientApiConstants.villageIdParamName).value(villageId).ignoreIfNull().longGreaterThanZero();
+        }
+
+        if (this.fromApiJsonHelper.parameterExists(ClientApiConstants.birthVillageIdParamName, element)) {
+            atLeastOneParameterPassedForUpdate = true;
+            final Long birthVillageId = this.fromApiJsonHelper.extractLongNamed(ClientApiConstants.birthVillageIdParamName, element);
+            baseDataValidator.reset().parameter(ClientApiConstants.birthVillageIdParamName).value(birthVillageId).ignoreIfNull()
+                    .longGreaterThanZero();
         }
 
         Map<String, Object> parameterUpdateStatusDetails = getParameterUpdateStatusAndDataValidationErrorsForUpdateOnClientNonPerson(

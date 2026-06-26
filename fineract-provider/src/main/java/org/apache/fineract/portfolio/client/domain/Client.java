@@ -51,6 +51,7 @@ import org.apache.fineract.infrastructure.documentmanagement.domain.Image;
 import org.apache.fineract.infrastructure.security.service.RandomPasswordGenerator;
 import org.apache.fineract.organisation.office.domain.Office;
 import org.apache.fineract.organisation.staff.domain.Staff;
+import org.apache.fineract.organisation.village.domain.Village;
 import org.apache.fineract.portfolio.client.api.ClientApiConstants;
 import org.apache.fineract.portfolio.collateralmanagement.domain.ClientCollateralManagement;
 import org.apache.fineract.portfolio.group.domain.Group;
@@ -224,9 +225,17 @@ public class Client extends AbstractAuditableWithUTCDateTimeCustom {
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<ClientCollateralManagement> clientCollateralManagements = new HashSet<>();
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "village_id", nullable = true)
+    private Village village;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "birth_village_id", nullable = true)
+    private Village birthVillage;
+
     public static Client createNew(final AppUser currentUser, final Office clientOffice, final Group clientParentGroup, final Staff staff,
             final Long savingsProductId, final CodeValue gender, final CodeValue clientType, final CodeValue clientClassification,
-            final Integer legalForm, final JsonCommand command) {
+            final Integer legalForm, final Village village, final Village birthVillage, final JsonCommand command) {
 
         final String accountNo = command.stringValueOfParameterNamed(ClientApiConstants.accountNoParamName);
         final String externalId = command.stringValueOfParameterNamed(ClientApiConstants.externalIdParamName);
@@ -266,7 +275,7 @@ public class Client extends AbstractAuditableWithUTCDateTimeCustom {
         final Long savingsAccountId = null;
         return new Client(currentUser, status, clientOffice, clientParentGroup, accountNo, firstname, middlename, lastname, fullname,
                 activationDate, officeJoiningDate, externalId, mobileNo, emailAddress, staff, submittedOnDate, savingsProductId,
-                savingsAccountId, dataOfBirth, gender, clientType, clientClassification, legalForm, isStaff);
+                savingsAccountId, dataOfBirth, gender, clientType, clientClassification, legalForm, isStaff, village, birthVillage);
     }
 
     protected Client() {}
@@ -276,7 +285,8 @@ public class Client extends AbstractAuditableWithUTCDateTimeCustom {
             final LocalDate activationDate, final LocalDate officeJoiningDate, final String externalId, final String mobileNo,
             final String emailAddress, final Staff staff, final LocalDate submittedOnDate, final Long savingsProductId,
             final Long savingsAccountId, final LocalDate dateOfBirth, final CodeValue gender, final CodeValue clientType,
-            final CodeValue clientClassification, final Integer legalForm, final Boolean isStaff) {
+            final CodeValue clientClassification, final Integer legalForm, final Boolean isStaff,
+            final Village village, final Village birthVillage) {
 
         if (StringUtils.isBlank(accountNo)) {
             this.accountNumber = new RandomPasswordGenerator(19).generate();
@@ -342,6 +352,8 @@ public class Client extends AbstractAuditableWithUTCDateTimeCustom {
         this.clientType = clientType;
         this.clientClassification = clientClassification;
         this.setLegalForm(legalForm);
+        this.village = village;
+        this.birthVillage = birthVillage;
 
         deriveDisplayName();
         validate();
@@ -549,6 +561,16 @@ public class Client extends AbstractAuditableWithUTCDateTimeCustom {
         if (command.isChangeInLongParameterNamed(ClientApiConstants.clientClassificationIdParamName, clientClassificationId())) {
             final Long newValue = command.longValueOfParameterNamed(ClientApiConstants.clientClassificationIdParamName);
             actualChanges.put(ClientApiConstants.clientClassificationIdParamName, newValue);
+        }
+
+        if (command.isChangeInLongParameterNamed(ClientApiConstants.villageIdParamName, villageId())) {
+            final Long newValue = command.longValueOfParameterNamed(ClientApiConstants.villageIdParamName);
+            actualChanges.put(ClientApiConstants.villageIdParamName, newValue);
+        }
+
+        if (command.isChangeInLongParameterNamed(ClientApiConstants.birthVillageIdParamName, birthVillageId())) {
+            final Long newValue = command.longValueOfParameterNamed(ClientApiConstants.birthVillageIdParamName);
+            actualChanges.put(ClientApiConstants.birthVillageIdParamName, newValue);
         }
 
         if (command.isChangeInIntegerParameterNamed(ClientApiConstants.legalFormIdParamName, this.getLegalForm())) {
@@ -951,6 +973,22 @@ public class Client extends AbstractAuditableWithUTCDateTimeCustom {
 
     public void updateGender(CodeValue gender) {
         this.gender = gender;
+    }
+
+    public Long villageId() {
+        return this.village != null ? this.village.getId() : null;
+    }
+
+    public void updateVillage(final Village village) {
+        this.village = village;
+    }
+
+    public Long birthVillageId() {
+        return this.birthVillage != null ? this.birthVillage.getId() : null;
+    }
+
+    public void updateBirthVillage(final Village birthVillage) {
+        this.birthVillage = birthVillage;
     }
 
     public LocalDate dateOfBirth() {

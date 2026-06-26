@@ -32,7 +32,9 @@ public enum DailySpotRateJsonInputParams {
     CURRENCY_CODE("currencyCode"),
     SPOT_RATE("spotRate"),
     BUYING_RATE("buyingRate"),
-    SELLING_RATE("sellingRate");
+    SELLING_RATE("sellingRate"),
+    LOCALE("locale"),
+    DATE_FORMAT("dateFormat");
 
     private final String value;
 
